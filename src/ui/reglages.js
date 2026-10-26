@@ -58,7 +58,7 @@ function choixVoix(app) {
   sel.addEventListener("change", () => app.store.maj(x => { x.prefs.voix = sel.value; }));
   return h("div", { class: "toggle choix-voix" },
     h("div", {}, h("label", { for: "voix" }, "Voix française"),
-      h("div", { class: "desc" }, "Les voix viennent de ton appareil. Pour une voix plus naturelle : le navigateur Edge propose des voix « Natural » ; sur iPhone, iPad ou Mac, va dans Accessibilité › Contenu énoncé › Voix et télécharge une voix française « Premium » ou « améliorée » ; sur Android, installe les données vocales françaises du moteur Google (Paramètres › Synthèse vocale).")),
+      h("div", { class: "desc" }, "Les voix viennent de ton appareil. Pour une voix plus naturelle : le navigateur Edge propose des voix « Natural » ; sur iPhone, iPad ou Mac, va dans Accessibilité › Contenu énoncé › Voix et télécharge une voix française « Premium » ou « améliorée » ; sur Android, installe les données vocales françaises du moteur Google (Paramètres › Synthèse vocale).")),
     h("div", { class: "rang" }, sel,
       h("button", { class: "btn discret petit", type: "button", onclick: () => lire("Bonjour ! C'est avec cette voix que je lirai tes cours et tes questions.") }, icone("son", { taille: 16 }), "Essayer")));
 }
