@@ -177,7 +177,7 @@ const RENDUS = {
       montrer: (res) => inputs.forEach((inp, i) => { inp.disabled = true; inp.classList.add(res.detail?.[i]?.ok ? "juste" : "faux"); if (!res.detail?.[i]?.ok) inp.title = `Attendu : ${item.reponses[i][0]}`; }) };
   },
   ordre(item, corps, { onPret }) {
-    const idx = melanger(item.elements.map((_, i) => i), hashCode(item.id) + 7);
+    const idx = melangerSansIdentite(item.elements.length, hashCode(item.id) + 7);
     let reserve = idx.slice(), reponse = [];
     const zoneR = h("div", { class: "ordre-liste", "aria-label": "Éléments à ranger" }), zoneA = h("div", { class: "ordre-liste cible", "aria-label": "Ton ordre" });
     const rendre = () => {
@@ -198,7 +198,7 @@ const RENDUS = {
   },
   assoc(item, corps, { onPret }) {
     const n = item.paires.length;
-    const ordreD = melanger(item.paires.map((_, i) => i), hashCode(item.id) + 3);
+    const ordreD = melangerSansIdentite(item.paires.length, hashCode(item.id) + 3);
     const liens = new Array(n).fill(null); // gauche i → droite j
     let selG = null;
     const bG = item.paires.map((p, i) => h("button", { class: "choix", "aria-pressed": "false", onclick: () => { if (liens[i] !== null) { liens[i] = null; } selG = i; rendre(); } }, mdEl(String(p[0])), h("span", { class: "marque", style: { visibility: "hidden" } })));
@@ -288,6 +288,14 @@ function afficherFin(ctx) {
       h("a", { class: "bouton", href: "#/jardin" }, "Retour au jardin")),
     h("details", { style: { marginTop: "1.2rem", textAlign: "left" } }, h("summary", { class: "muet", style: { cursor: "pointer" } }, "Le détail des questions"), recap)),
     ...(diagnostic ? [diagnostic] : []));
+}
+
+/** Mélange qui n'est jamais l'identité (sinon l'exercice serait déjà résolu). */
+function melangerSansIdentite(n, graine) {
+  const idx = [...Array(n).keys()];
+  let m = melanger(idx, graine);
+  if (n > 1 && m.every((v, i) => v === i)) m = m.slice(1).concat(m[0]);
+  return m;
 }
 
 function texteQuestion(item) { return item.q || item.texte || item.recto || ""; }
