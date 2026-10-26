@@ -480,7 +480,7 @@ export default {
           explication: "La loi s'applique aussi en ligne, et l'anonymat n'est jamais total : les enquêteurs peuvent retrouver l'auteur d'un message. Une insulte sur internet reste une insulte, avec les mêmes conséquences." },
         { id: "6e-emc-07-citoyennete-numerique-q05", type: "ordre", competence: "6e-emc-07-citoyennete-numerique-c3", difficulte: 2,
           q: "Remets dans l'ordre les étapes pour vérifier une information avant de la partager.",
-          elements: ["Lire l'information en entier, pas seulement le titre", "Chercher qui l'a publiée (la source)", "Regarder la date de publication", "Comparer avec d'autres sites fiables", "Décider de partager ou non"],
+          elements: ["Lire l'information en entier, pas seulement le titre", "Chercher qui l'a publiée (la source) et à quelle date", "Comparer avec d'autres sites fiables", "Décider de partager ou non"],
           explication: "Un titre peut tromper : il faut lire. Puis on s'interroge sur la source et la date, on croise avec d'autres médias reconnus, et seulement après on décide. Partager une infox, c'est la propager." },
         { id: "6e-emc-07-citoyennete-numerique-q06", type: "qcm", competence: "6e-emc-07-citoyennete-numerique-c2", difficulte: 2,
           q: "Un camarade veut publier une photo de toi sur un réseau social. Que dit le droit à l'image ?",

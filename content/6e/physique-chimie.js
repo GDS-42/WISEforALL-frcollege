@@ -186,7 +186,7 @@ export default {
           q: "L'huile et l'eau sont deux liquides :", choix: ["Miscibles", "Non miscibles", "Solubles", "Saturés"], bonne: 1,
           explication: "Même après agitation, l'huile et l'eau se séparent en deux couches : elles ne sont pas miscibles. « Soluble » s'emploie pour un solide ou un gaz qui se dissout dans un liquide." },
         { id: "6e-physique-chimie-03-melanges-solutions-q07", type: "ordre", competence: "6e-physique-chimie-03-melanges-solutions-c3", difficulte: 2,
-          q: "Remets dans l'ordre les étapes d'une filtration.", elements: ["Plier le filtre en papier et le placer dans l'entonnoir", "Poser l'entonnoir sur un bécher propre", "Verser lentement le mélange dans le filtre", "Récupérer le filtrat limpide dans le bécher"],
+          q: "Remets dans l'ordre les étapes d'une filtration.", elements: ["Poser l'entonnoir sur un bécher propre et y placer le filtre en papier plié", "Verser lentement le mélange dans le filtre", "Attendre que tout le liquide ait traversé le filtre", "Récupérer le filtrat limpide dans le bécher"],
           explication: "On prépare d'abord le matériel, puis on verse doucement pour ne pas déborder. Le liquide qui traverse le filtre s'appelle le filtrat ; ce qui reste dans le filtre est le résidu." },
         { id: "6e-physique-chimie-03-melanges-solutions-q08", type: "vf", competence: "6e-physique-chimie-03-melanges-solutions-c1", difficulte: 1,
           q: "L'air est un mélange de plusieurs gaz.", reponse: true,

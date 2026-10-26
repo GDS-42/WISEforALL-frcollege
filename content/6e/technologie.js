@@ -359,7 +359,7 @@ export default {
           q: "Qu'est-ce qu'un algorithme ?", choix: ["Un ordinateur très puissant", "Une suite ordonnée d'instructions pour accomplir une tâche", "Un personnage de jeu vidéo", "Un mot de passe"], bonne: 1,
           explication: "Un algorithme, c'est comme une recette : des étapes précises, dans le bon ordre. Il peut être écrit en français, en dessin ou en blocs Scratch. L'ordinateur n'est que la machine qui l'exécute." },
         { id: "6e-technologie-06-algorithmes-programmation-q02", type: "ordre", competence: "6e-technologie-06-algorithmes-programmation-c1", difficulte: 1,
-          q: "Range les instructions de cet algorithme « préparer un chocolat chaud » dans le bon ordre.", elements: ["Verser le lait dans une casserole", "Chauffer le lait", "Ajouter la poudre de chocolat", "Mélanger", "Verser dans la tasse"],
+          q: "Range les instructions de cet algorithme « préparer un chocolat chaud » dans le bon ordre.", elements: ["Verser le lait dans une casserole", "Chauffer le lait", "Ajouter la poudre de chocolat dans le lait chaud", "Mélanger", "Verser dans la tasse"],
           explication: "Dans un algorithme, l'ordre compte : on ne peut pas mélanger avant d'avoir ajouté le chocolat, ni verser dans la tasse avant d'avoir chauffé. Un ordre faux donne un résultat faux." },
         { id: "6e-technologie-06-algorithmes-programmation-q03", type: "qcm", competence: "6e-technologie-06-algorithmes-programmation-c2", difficulte: 1,
           q: "Quel bloc Scratch permet de répéter plusieurs fois les mêmes instructions ?", choix: ["« dire Bonjour »", "« répéter 10 fois »", "« quand le drapeau vert est cliqué »", "« avancer de 10 pas »"], bonne: 1,

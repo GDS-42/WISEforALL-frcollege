@@ -178,7 +178,7 @@ export default {
           q: "Sur quel support les Mésopotamiens écrivent-ils le cunéiforme ?", choix: ["Sur des tablettes d'argile", "Sur du papier", "Sur du parchemin", "Sur des écrans"], bonne: 0,
           explication: "Les scribes mésopotamiens gravent des signes en forme de clous dans l'argile fraîche avec un roseau taillé (le calame). Le papier sera inventé en Chine bien plus tard." },
         { id: "6e-histoire-03-premiers-etats-ecritures-q06", type: "assoc", competence: "6e-histoire-03-premiers-etats-ecritures-c2", difficulte: 2,
-          q: "Associe chaque élément à la civilisation correspondante.", paires: [["Hiéroglyphes", "Égypte"], ["Cunéiforme", "Mésopotamie"], ["Papyrus", "Égypte (feuilles de roseau du Nil)"], ["Cités-États d'Uruk et d'Ur", "Mésopotamie (entre Tigre et Euphrate)"]],
+          q: "Associe chaque élément à la civilisation correspondante.", paires: [["Hiéroglyphes", "Écriture de l'Égypte, gravée sur la pierre"], ["Cunéiforme", "Écriture de la Mésopotamie, tracée dans l'argile"], ["Papyrus", "Support d'écriture fait avec un roseau du Nil"], ["Cités-États d'Uruk et d'Ur", "Villes indépendantes entre le Tigre et l'Euphrate"]],
           explication: "L'Égypte écrit en hiéroglyphes sur pierre ou papyrus. La Mésopotamie écrit en cunéiforme sur argile et s'organise en cités-États indépendantes." },
         { id: "6e-histoire-03-premiers-etats-ecritures-q07", type: "num", competence: "6e-histoire-03-premiers-etats-ecritures-c2", difficulte: 2,
           q: "Vers quelle date l'écriture est-elle inventée en Mésopotamie ? Réponds avec un nombre négatif pour avant J.-C.", reponse: -3300, tolerance: 200,

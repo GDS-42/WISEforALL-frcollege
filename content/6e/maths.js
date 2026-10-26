@@ -723,8 +723,8 @@ export default {
         { id: "6e-maths-10-triangles-quadrilateres-cercle-q15", type: "flash", competence: "6e-maths-10-triangles-quadrilateres-cercle-c2", difficulte: 1,
           recto: "Un quadrilatère a combien de côtés ?", verso: "4 (et 4 sommets)" },
         { id: "6e-maths-10-triangles-quadrilateres-cercle-q16", type: "ordre", competence: "6e-maths-10-triangles-quadrilateres-cercle-c3", difficulte: 2,
-          q: "Remets dans l'ordre les étapes pour tracer un cercle de centre O et de rayon 3 cm.", elements: ["Je place le point O", "J'écarte le compas de 3 cm en m'aidant de la règle", "Je pique la pointe sèche du compas en O", "Je fais tourner le compas sans changer l'écartement"],
-          explication: "L'écartement du compas est le rayon, pas le diamètre. Si l'écartement change pendant le tracé, le cercle est raté." },
+          q: "Remets dans l'ordre les étapes pour tracer un cercle de centre O et de rayon 3 cm.", elements: ["Je place le point O et je trace un segment [OA] de 3 cm", "Je pique la pointe sèche du compas en O et j'écarte le compas jusqu'au point A", "Je fais tourner le compas sans changer l'écartement", "Je vérifie que le tracé revient bien sur le point A"],
+          explication: "L'écartement du compas est le rayon (OA = 3 cm), pas le diamètre. Si l'écartement change pendant le tracé, le cercle ne revient pas sur A : il est raté." },
       ]
     },
     // ───────────────────────── 11. Symétrie axiale et solides ─────────────────────────
@@ -848,7 +848,7 @@ export default {
           explication: "Avancer de 2 vers le nord : A1 → A3. Tourner à droite : le robot regarde maintenant vers l'est. Avancer de 3 : A3 → D3. Répondre C3 vient d'avoir compté 3 cases en incluant la case de départ.",
           indice: "Quand on regarde vers le nord et qu'on tourne à droite, on regarde vers l'est." },
         { id: "6e-maths-12-donnees-algorithmique-q09", type: "ordre", competence: "6e-maths-12-donnees-algorithmique-c2", difficulte: 2,
-          q: "Remets dans l'ordre les blocs d'un script Scratch qui trace un carré.", elements: ["Quand le drapeau vert est cliqué", "Stylo en position d'écriture", "Répéter 4 fois :", "Avancer de 50 pas", "Tourner de 90 degrés"],
+          q: "Remets dans l'ordre les blocs d'un script Scratch qui trace un carré. Dans la boucle, le lutin avance d'abord, puis il tourne.", elements: ["Quand le drapeau vert est cliqué", "Stylo en position d'écriture", "Répéter 4 fois :", "Avancer de 50 pas", "Tourner de 90 degrés"],
           explication: "Le script commence par l'événement déclencheur, puis on baisse le stylo pour tracer. Dans la boucle, on avance puis on tourne, quatre fois : quatre côtés et quatre angles droits." },
         { id: "6e-maths-12-donnees-algorithmique-q10", type: "num", competence: "6e-maths-12-donnees-algorithmique-c2", difficulte: 2,
           q: "Un lutin exécute « répéter 4 fois : avancer de 50 pas, tourner de 90° ». Quelle distance totale parcourt-il ?", reponse: 200, tolerance: 0, unite: "pas",

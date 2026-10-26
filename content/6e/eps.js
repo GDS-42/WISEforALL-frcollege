@@ -33,7 +33,7 @@ export default {
           explication: "L'échauffement réchauffe les muscles, augmente le rythme du cœur et prépare les articulations. Un muscle froid se blesse plus facilement. Ce n'est pas du temps perdu, c'est une protection." },
         { id: "6e-eps-01-sante-securite-q02", type: "ordre", competence: "6e-eps-01-sante-securite-c1", difficulte: 2,
           q: "Remets dans l'ordre les temps d'une séance d'EPS.",
-          elements: ["Échauffement", "Activité principale", "Retour au calme", "Étirements doux et hydratation"],
+          elements: ["Échauffement", "Activité principale", "Retour au calme : marche lente et respiration", "Étirements doux une fois le cœur calmé, puis hydratation"],
           explication: "On commence toujours par s'échauffer, on pratique ensuite l'activité, puis on fait redescendre le cœur avec un retour au calme, et on termine par des étirements doux en pensant à boire." },
         { id: "6e-eps-01-sante-securite-q03", type: "vf", competence: "6e-eps-01-sante-securite-c3", difficulte: 1,
           q: "Pendant un effort, il faut attendre d'avoir soif pour boire.", reponse: false,
