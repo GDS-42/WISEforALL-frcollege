@@ -270,6 +270,14 @@ function blocEtapes(b) {
 
 // ————————————————————————————— Vérifie que tu as compris —————————————————————————————
 
+function ordreMelange(n, graine) {
+  let x = 2166136261;
+  for (const ch of graine) x = Math.imul(x ^ ch.charCodeAt(0), 16777619) >>> 0;
+  const ordre = Array.from({ length: n }, (_, i) => i);
+  for (let i = n - 1; i > 0; i--) { x = Math.imul(x ^ (x >>> 15), 2246822507) >>> 0; x = (x ^ (x >>> 13)) >>> 0; const j = x % (i + 1); [ordre[i], ordre[j]] = [ordre[j], ordre[i]]; }
+  return ordre;
+}
+
 function blocVerifie(b, ctx = {}) {
   const qid = uid("q");
   const choix = b.choix || [];
@@ -277,17 +285,21 @@ function blocVerifie(b, ctx = {}) {
   const retour = h("div", { class: "cours-verifie-retour", "aria-live": "polite" });
   const tampon = h("span", { class: "cours-tampon", "aria-hidden": "true", hidden: true });
   const reessayer = h("button", { type: "button", class: "cours-bouton cours-bouton-discret", hidden: true }, "↺ Réessayer");
-  const boutons = choix.map((c, i) => h("button", { type: "button", class: "cours-choix", onclick: () => choisir(i) },
-    h("span", { class: "cours-choix-lettre", "aria-hidden": "true" }, lettre(i)),
+  // Ordre d'affichage mélangé (stable pour une même question) : la bonne réponse n'est pas toujours au même endroit.
+  const ordre = ordreMelange(choix.length, `${b.q}|${choix.join("|")}`);
+  const place = (i) => ordre.indexOf(i); // position affichée du choix d'indice i
+  const parIndice = choix.map((c, i) => h("button", { type: "button", class: "cours-choix", onclick: () => choisir(i) },
+    h("span", { class: "cours-choix-lettre", "aria-hidden": "true" }, lettre(place(i))),
     ligne(c, "span", "cours-choix-texte"),
     h("span", { class: "cours-choix-marque", "aria-hidden": "true" }),
     h("span", { class: "cours-sr cours-choix-etat" })));
+  const boutons = ordre.map((i) => parIndice[i]);
 
   function choisir(i) {
     if (repondu) return;
     repondu = true; essai++;
     const juste = i === b.bonne;
-    boutons.forEach((bt, k) => {
+    parIndice.forEach((bt, k) => {
       bt.setAttribute("aria-disabled", "true");
       const etat = bt.querySelector(".cours-choix-etat"), marque = bt.querySelector(".cours-choix-marque");
       if (k === i) {
@@ -303,7 +315,7 @@ function blocVerifie(b, ctx = {}) {
     tampon.replaceChildren(h("span", { class: "cours-tampon-signe" }, juste ? "✓" : "✗"), h("span", { class: "cours-tampon-mot" }, juste ? "Bien vu" : "À revoir"));
     retour.replaceChildren(
       h("p", { class: `cours-verifie-verdict ${juste ? "ok" : "ko"}` },
-        juste ? "Bravo, c'est juste !" : ["Pas tout à fait. La bonne réponse est ", h("strong", {}, `${lettre(b.bonne)} : `, ligne(choix[b.bonne] ?? "")), "."]),
+        juste ? "Bravo, c'est juste !" : ["Pas tout à fait. La bonne réponse est ", h("strong", {}, `${lettre(place(b.bonne))} : `, ligne(choix[b.bonne] ?? "")), "."]),
       b.explication ? paragraphes(b.explication, "cours-verifie-explication") : null);
     reessayer.hidden = false;
     try { ctx.onVerifie?.(juste, { bloc: b, essai }); } catch (e) { console.warn("onVerifie :", e); }

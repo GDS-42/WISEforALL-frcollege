@@ -104,7 +104,9 @@ async function seance(page, route) {
   // Fichier invalide : message clair, pas de plantage.
   await page.click("text=Reprendre un fichier");
   await page.setInputFiles('.import-zone input[type="file"]', { name: "x.json", mimeType: "application/json", buffer: Buffer.from("{oups") });
-  if (!(await page.textContent(".import-message")).includes("illisible")) erreurs.push("[sauvegarde] pas de message pour un fichier invalide");
+  // La lecture du fichier est asynchrone : on attend le message plutôt que de le lire aussitôt.
+  try { await page.waitForFunction(() => document.querySelector(".import-message")?.textContent.includes("illisible"), null, { timeout: 4000 }); }
+  catch { erreurs.push("[sauvegarde] pas de message pour un fichier invalide"); }
   // Rappel du jardin quand la dernière sauvegarde est ancienne (modifié hors de l'appli, qui réécrit son état en partant).
   await page.goto(BASE + "manifest.json");
   await page.evaluate(() => {
