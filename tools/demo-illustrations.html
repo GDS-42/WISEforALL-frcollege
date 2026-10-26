@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ÉCLORE — planche des illustrations</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Lexend:wght@300;400;600&family=Young+Serif&display=swap" rel="stylesheet">
+<style>
+  /* Jetons de démonstration, d'après docs/DESIGN.md (les vrais jetons vivent dans la feuille de style de l'app). */
+  .theme[data-theme="jour"] {
+    --papier: #f5eddc; --papier-2: #efe4cd; --papier-3: #e6d7bb;
+    --encre: #34261b; --encre-2: #5e4b3a; --encre-3: #8b7863;
+    --trait: #cdbb9b; --trait-fort: #a8916f;
+    --ok: #557f3c; --ko: #b2452f; --attention: #c48a1e; --or: #b8892a;
+    --pigment-texte: color-mix(in srgb, var(--pigment) 78%, #000);
+  }
+  .theme[data-theme="nuit"] {
+    --papier: #1a2133; --papier-2: #212a3e; --papier-3: #151b2a;
+    --encre: #eee4cf; --encre-2: #c8bea8; --encre-3: #8f8a80;
+    --trait: #3a4560; --trait-fort: #5b6787;
+    --ok: #93c27c; --ko: #e48c76; --attention: #e7b85c; --or: #e4bd62;
+    --pigment-texte: color-mix(in srgb, var(--pigment) 65%, #fff);
+  }
+  :root { --f-titre: "Young Serif", Georgia, serif; --f-texte: "Lexend", system-ui, sans-serif; --f-main: "Caveat", "Segoe Script", cursive; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #8d877c; font-family: var(--f-texte); }
+  .cote { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+  .theme { background: var(--papier); color: var(--encre); padding: 24px 28px 40px; min-width: 0; }
+  h1 { font-family: var(--f-titre); font-weight: 400; margin: 0 0 4px; font-size: 26px; }
+  h2 { font-family: var(--f-titre); font-weight: 400; font-size: 18px; margin: 28px 0 8px; border-bottom: 1.5px solid var(--encre); padding-bottom: 4px; }
+  .note { font-family: var(--f-main); font-size: 19px; color: var(--encre-2); margin: 0 0 8px; }
+  .grille-plantes { display: grid; grid-template-columns: 74px repeat(6, 1fr); gap: 0 4px; align-items: end; }
+  .grille-plantes .lib { font-family: var(--f-main); font-size: 16px; color: var(--encre-2); align-self: center; line-height: 1; }
+  .grille-plantes .ent { font-family: var(--f-main); font-size: 16px; text-align: center; color: var(--encre-3); }
+  .grille-plantes svg { width: 100%; height: auto; display: block; }
+  .rang { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; }
+  .rang figure { margin: 0; text-align: center; }
+  .rang figcaption { font-family: var(--f-main); font-size: 15px; color: var(--encre-2); }
+  .petites { display: flex; flex-wrap: wrap; gap: 2px; align-items: flex-end; }
+  .paysages { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .paysages svg { width: 100%; height: auto; display: block; border: 1.5px solid var(--encre); border-radius: 6px; }
+  .deco svg { width: 96px; height: 96px; }
+  .planches { display: flex; flex-wrap: wrap; gap: 14px; }
+  .planches svg { width: 300px; height: 400px; }
+</style>
+</head>
+<body>
+<div class="cote" id="racine"></div>
+<script type="module">
+  import { injecterDefs } from "../src/ui/defs.js";
+  import { plante, plantePetite, NOMS_STADES } from "../src/plants.js";
+  import { MATIERES } from "../content/matieres.js";
+  injecterDefs();
+  const PIGMENTS = { francais: "#c4553d", maths: "#3d5a99", histoire: "#a35d32", geographie: "#5f8a6e", emc: "#7d4f73", svt: "#5a8a3a", "physique-chimie": "#b86f32", technologie: "#56707e", anglais: "#a83e48", espagnol: "#cc8a24", "arts-plastiques": "#b04a82", "education-musicale": "#2c7b80", eps: "#d06a2c" };
+  const NS = "http://www.w3.org/2000/svg";
+  const el = (t, a = {}, ...e) => { const n = document.createElement(t); for (const [k, v] of Object.entries(a)) n.setAttribute(k, v); n.append(...e); return n; };
+  const ils = await import("../src/ui/illustrations.js").catch(err => { console.warn("illustrations.js absent", err.message); return null; });
+  const seulement = new URLSearchParams(location.search).get("s");
+
+  for (const theme of ["jour", "nuit"]) {
+    const T = el("section", { class: "theme", "data-theme": theme });
+    T.append(el("h1", {}, `Herbier d'ÉCLORE — ${theme}`), el("p", { class: "note" }, "planche de démonstration : espèces, stades, soif, petites tailles, Lume, paysages, décor, emblèmes"));
+    if (!seulement || seulement === "plantes") {
+      T.append(el("h2", {}, "Les treize espèces, six stades"));
+      const G = el("div", { class: "grille-plantes" });
+      G.append(el("span"), ...NOMS_STADES.map(n => el("span", { class: "ent" }, n)));
+      for (const [id, m] of Object.entries(MATIERES)) {
+        const ligne = el("div", { style: `display:contents;--pigment:${PIGMENTS[id]}` });
+        ligne.append(el("span", { class: "lib" }, m.plante));
+        for (let s = 0; s < 6; s++) { const v = document.createElementNS(NS, "svg"); v.setAttribute("viewBox", "0 0 80 120"); v.setAttribute("overflow", "visible"); v.append(plante({ forme: m.plante, stade: s, graine: id + "-demo" })); ligne.append(v); }
+        G.append(ligne);
+      }
+      T.append(G);
+      T.append(el("h2", {}, "Soif (stades 2 à 5) et unicité par graine"));
+      const R = el("div", { class: "rang" });
+      for (const [id, m] of Object.entries(MATIERES).slice(0, 7)) {
+        const f = el("figure", { style: `--pigment:${PIGMENTS[id]}` });
+        const v = document.createElementNS(NS, "svg"); v.setAttribute("viewBox", "0 0 80 120"); v.setAttribute("width", 80); v.setAttribute("height", 120); v.setAttribute("overflow", "visible");
+        v.append(plante({ forme: m.plante, stade: 2 + (id.length % 4), graine: id, soif: true }));
+        f.append(v, el("figcaption", {}, "assoiffée")); R.append(f);
+      }
+      for (const g of ["a", "b", "c"]) { const f = el("figure", { style: `--pigment:${PIGMENTS.francais}` }); const v = document.createElementNS(NS, "svg"); v.setAttribute("viewBox", "0 0 80 120"); v.setAttribute("width", 80); v.setAttribute("height", 120); v.append(plante({ forme: "rose", stade: 4, graine: g })); f.append(v, el("figcaption", {}, `graine ${g}`)); R.append(f); }
+      T.append(R);
+      T.append(el("h2", {}, "Lisibilité à 40 px (plantePetite)"));
+      const P = el("div", { class: "petites" });
+      for (const [id, m] of Object.entries(MATIERES)) for (const s of [0, 3, 5]) P.append(plantePetite({ forme: m.plante, couleur: PIGMENTS[id], stade: s, graine: id }, 40));
+      T.append(P);
+    }
+    if (ils && (!seulement || seulement === "illus")) {
+      T.append(el("h2", {}, "Lume, la luciole mentor"));
+      const L = el("div", { class: "rang" });
+      for (const h of ["calme", "joie", "encourage", "pense", "dort"]) { const f = el("figure"); const s = ils.lume({ humeur: h }); s.setAttribute("width", 110); s.setAttribute("height", 110); f.append(s, el("figcaption", {}, h)); L.append(f); }
+      for (const h of ["calme", "joie", "dort"]) { const s = ils.lume({ humeur: h }); s.setAttribute("width", 40); s.setAttribute("height", 40); L.append(s); }
+      T.append(L);
+      T.append(el("h2", {}, "Paysages"));
+      const PG = el("div", { class: "paysages" });
+      for (const mo of ["aube", "jour", "crepuscule", "nuit"]) {
+        const v = document.createElementNS(NS, "svg"); v.setAttribute("viewBox", "0 0 640 300");
+        v.append(ils.paysage({ largeur: 640, hauteur: 300, moment: mo }));
+        const g = document.createElementNS(NS, "g"); g.setAttribute("transform", "translate(250 172) scale(1)");
+        [["rose", "francais", 4], ["tournesol", "eps", 5], ["chene", "histoire", 3]].forEach(([fo, id, s], i) => { const p = plante({ forme: fo, stade: s, graine: id, couleur: PIGMENTS[id] }); p.setAttribute("transform", `translate(${i * 70} 0)`); g.append(p); });
+        v.append(g);
+        const f = el("figure", { style: "margin:0" }); f.append(v, el("figcaption", { class: "note" }, mo)); PG.append(f);
+      }
+      T.append(PG);
+      T.append(el("h2", {}, "Décorations de la boutique"));
+      const D = el("div", { class: "rang deco" });
+      for (const d of ils.DECORATIONS) { const v = document.createElementNS(NS, "svg"); v.setAttribute("viewBox", "0 0 80 80"); v.setAttribute("overflow", "visible"); v.append(ils.decoration(d.id)); const f = el("figure"); f.append(v, el("figcaption", {}, d.nom)); D.append(f); }
+      T.append(D);
+      T.append(el("h2", {}, "Emblèmes (ex-libris) — 72 px et 36 px"));
+      const E = el("div", { class: "rang" });
+      for (const id of Object.keys(MATIERES)) { const f = el("figure"); f.append(ils.embleme(id, 72), ils.embleme(id, 36), el("figcaption", {}, MATIERES[id].court)); E.append(f); }
+      T.append(E);
+      T.append(el("h2", {}, "Planches de la collection"));
+      const PL = el("div", { class: "planches" });
+      PL.append(ils.planche({ chapitre: "6e-fractions", titre: "Fractions égales", forme: "cristal", couleur: PIGMENTS.maths, numero: 12, doree: true }));
+      PL.append(ils.planche({ chapitre: "5e-moyen-age", titre: "La société féodale", forme: "chene", couleur: PIGMENTS.histoire, numero: 7, doree: false }));
+      PL.append(ils.planche({ chapitre: "4e-lumiere", titre: "La lumière et ses couleurs", forme: "lanterne", couleur: PIGMENTS["physique-chimie"], numero: 31, doree: false }));
+      T.append(PL);
+    }
+    document.getElementById("racine").append(T);
+  }
+  document.body.dataset.pret = "1";
+</script>
+</body>
+</html>

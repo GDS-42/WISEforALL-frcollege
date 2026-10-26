@@ -4,13 +4,13 @@
 const CLE_PROFILS = "eclore:profils";
 const CLE_ACTIF = "eclore:profil-actif";
 const prefixe = (id) => `eclore:profil:${id}`;
-export const VERSION_ETAT = 1;
+export const VERSION_ETAT = 2;
 
 export function etatVierge(profil) {
   return {
     version: VERSION_ETAT,
     profil: { id: profil.id, prenom: profil.prenom, niveau: profil.niveau, lv2: profil.lv2 || "espagnol", cree: Date.now(), graine: profil.graine ?? Math.floor(Math.random() * 1e9) },
-    prefs: { theme: "nuit", son: true, animations: true, dys: false, taille: 1, tts: false, objectifItems: 15, confiance: true },
+    prefs: { theme: "auto", son: true, animations: true, dys: false, taille: 1, tts: false, objectifItems: 15, confiance: true },
     items: {},      // id → état mémoire FSRS + stats { s, d, due, reps, lapses, last, etape, ok, n, conf:[devine,ok], tempsMs }
     comp: {},       // compétence → { elo, n }
     chapitres: {},  // id → { fiche: ts, decouvert: ts, diag: ts }
@@ -19,6 +19,7 @@ export function etatVierge(profil) {
     serie: { actuelle: 0, record: 0, dernierJour: null, joker: 1 },
     lumens: 0,      // monnaie douce : « lumens » gagnés par l'effort
     succes: {},     // id → ts
+    cours: {},      // chapitre → { sections: [index lus], lu: ts, verifies: n }
     intro: false,
   };
 }
@@ -65,6 +66,9 @@ function migrer(e) {
   if (!e.jours) e.jours = {};
   if (!e.prefs) e.prefs = etatVierge(e.profil).prefs;
   if (e.prefs.confiance === undefined) e.prefs.confiance = true;
+  // v2 : nouvelle charte « Herbier » ; l'ancien thème nuit par défaut devient « auto » (suit l'appareil).
+  if ((e.version || 1) < 2 && e.prefs.theme === "nuit") e.prefs.theme = "auto";
+  if (!e.cours) e.cours = {};
   e.version = VERSION_ETAT;
   return e;
 }

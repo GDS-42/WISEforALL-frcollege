@@ -1,0 +1,153 @@
+/* ÉCLORE — la séance d'exercices. */
+body[data-ecran="session"] { padding-left: 0; padding-bottom: 2rem; }
+.seance { max-width: 760px; margin: 0 auto; }
+.seance-haut { display: flex; align-items: center; gap: .8rem; margin-bottom: 1.1rem; position: sticky; top: 0; z-index: 5; padding: .5rem 0; background: color-mix(in oklab, var(--papier) 92%, transparent); }
+.tige { flex: 1; display: flex; align-items: center; gap: 0; height: 26px; position: relative; }
+.tige::before { content: ""; position: absolute; left: 6px; right: 6px; top: 50%; height: 2.5px; background: var(--pigment); opacity: .45; border-radius: 2px; transform: translateY(-50%); }
+.tige .noeud { position: relative; flex: 1; display: flex; justify-content: center; }
+.tige .noeud::after { content: ""; width: 12px; height: 12px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); border: 1.5px solid var(--encre); background: var(--papier-2); transition: background calc(300ms * var(--vitesse)), transform calc(300ms * var(--vitesse)); }
+.tige .noeud.ok::after { background: var(--ok); }
+.tige .noeud.ko::after { background: var(--papier-3); border-style: dashed; }
+.tige .noeud.courant::after { background: var(--pigment); transform: rotate(-45deg) scale(1.35); }
+.combo { display: inline-flex; align-items: center; gap: .2rem; padding: .25rem .55rem; border: 1.5px solid var(--encre); border-radius: var(--r); background: var(--papier-2); font-variant-numeric: tabular-nums; color: var(--encre-3); }
+.combo b { color: var(--encre); font-weight: 600; }
+.combo small { font-weight: 600; color: var(--or); }
+.combo.palier-1 .icone { color: var(--attention); }
+.combo.palier-2 .icone { color: #d06a2c; }
+.combo.palier-3 { background: color-mix(in oklab, var(--or) 22%, var(--papier-2)); }
+.combo.palier-3 .icone { color: var(--ko); animation: rebond calc(800ms * var(--vitesse)) ease-in-out infinite; }
+.chrono { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--attention); min-width: 3.2em; text-align: right; }
+
+/* La fiche question : une carte d'index posée sur le carnet. */
+.fiche-question { position: relative; background: var(--papier-2); border: 1.5px solid var(--encre); border-radius: 4px var(--r-l) var(--r-l) var(--r-l); padding: 1.4rem 1.4rem 1.2rem; box-shadow: var(--ombre-tampon); margin-top: 26px; animation: poser calc(420ms * var(--vitesse)) cubic-bezier(.2, 1.2, .4, 1) both;
+  background-image: repeating-linear-gradient(transparent 0 31px, color-mix(in oklab, var(--ciel, #8fb3d9) 18%, transparent) 31px 32px); background-position: 0 14px; }
+[data-theme="nuit"] .fiche-question { background-image: none; }
+.onglet-matiere { position: absolute; top: -27px; left: -1.5px; padding: .2rem .9rem .35rem; border: 1.5px solid var(--encre); border-bottom: 0; border-radius: var(--r) var(--r) 0 0; background: var(--pigment); color: #fffaf0; font-family: var(--f-main); font-size: 1.2rem; line-height: 1.2; }
+[data-theme="nuit"] .onglet-matiere { color: #10131a; background: color-mix(in oklab, var(--pigment) 75%, #fff); }
+.fiche-question.secoue { animation: secouer calc(420ms * var(--vitesse)) ease both; }
+.meta-question { display: flex; gap: .45rem; align-items: center; flex-wrap: wrap; margin-bottom: .6rem; }
+.difficulte { display: inline-flex; gap: 3px; margin-left: .2rem; }
+.difficulte i { width: 9px; height: 9px; border: 1.5px solid var(--encre); border-radius: 50%; }
+.difficulte i.plein { background: var(--encre); }
+.enonce { font-family: var(--f-texte); font-weight: 500; font-size: clamp(1.15rem, 2.6vw, 1.38rem); line-height: 1.45; margin: .3rem 0 1.15rem; letter-spacing: 0; }
+.consigne { font-family: var(--f-main); font-size: 1.3rem; color: var(--encre-2); margin: 0 0 .4rem; }
+.aide { color: var(--encre-3); font-size: .86rem; margin: .5rem 0 0; }
+
+.choix-liste { display: grid; gap: .6rem; }
+.choix { display: flex; align-items: center; gap: .85rem; width: 100%; min-height: 54px; padding: .8rem 1rem; text-align: left; border: 1.5px solid var(--encre); border-radius: var(--r); background: var(--papier); color: var(--encre); font-size: 1.02rem; box-shadow: var(--ombre-tampon-s); transition: transform calc(110ms * var(--vitesse)), box-shadow calc(110ms * var(--vitesse)), background calc(150ms * var(--vitesse)); }
+.choix:hover:not(:disabled) { transform: translate(-1px, -1px); box-shadow: var(--ombre-tampon); }
+.choix[aria-pressed="true"] { background: var(--pigment-lavis-2); transform: translate(2px, 2px); box-shadow: none; }
+.choix .lettre { width: 32px; height: 32px; flex-shrink: 0; display: grid; place-items: center; border: 1.5px solid var(--encre); border-radius: 50%; font-family: var(--f-titre); font-size: .95rem; background: var(--papier-2); }
+.choix[aria-pressed="true"] .lettre { background: var(--encre); color: var(--papier); }
+.choix.juste { background: color-mix(in oklab, var(--ok) 22%, var(--papier)); box-shadow: none; transform: none; }
+.choix.juste .lettre { background: var(--ok); color: var(--papier); border-color: var(--encre); }
+.choix.faux { background: color-mix(in oklab, var(--ko) 16%, var(--papier)); box-shadow: none; transform: none; text-decoration: line-through; text-decoration-color: var(--ko); }
+.choix:disabled { cursor: default; }
+.vf { display: grid; grid-template-columns: 1fr 1fr; gap: .8rem; }
+.vf-choix { justify-content: center; min-height: 74px; font-family: var(--f-titre); font-size: 1.3rem; }
+
+.texte-trous { font-size: 1.2rem; line-height: 2.3; margin: 0; }
+.trou { display: inline-block; margin: 0 .25rem; padding: .05rem .4rem; border: 0; border-bottom: 2px solid var(--encre); background: color-mix(in oklab, var(--or) 14%, transparent); border-radius: 4px 4px 0 0; font-family: var(--f-main); font-size: 1.55rem; line-height: 1.2; color: var(--pigment-texte); text-align: center; min-width: 4ch; }
+.trou:focus { outline: none; background: color-mix(in oklab, var(--or) 30%, transparent); border-bottom-color: var(--pigment-texte); }
+.trou.juste { border-bottom-color: var(--ok); color: var(--ok); }
+.trou.faux { border-bottom-color: var(--ko); color: var(--ko); text-decoration: line-through; }
+.saisie-ligne { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
+.saisie.grande { flex: 1; min-width: 180px; font-family: var(--f-main); font-size: 1.7rem; min-height: 60px; padding: .35rem 1rem; }
+.saisie.juste { border-color: var(--ok); background: color-mix(in oklab, var(--ok) 12%, var(--papier-2)); }
+.saisie.faux { border-color: var(--ko); background: color-mix(in oklab, var(--ko) 10%, var(--papier-2)); }
+.unite { font-family: var(--f-titre); font-size: 1.25rem; color: var(--encre-2); }
+
+/* Remettre dans l'ordre : étiquettes que l'on fait glisser. */
+.liste-ordre { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: .5rem; counter-reset: ordre; }
+.jeton { display: flex; align-items: center; gap: .6rem; padding: .55rem .6rem .55rem .4rem; border: 1.5px solid var(--encre); border-radius: var(--r); background: var(--papier); box-shadow: var(--ombre-tampon-s); cursor: grab; touch-action: none; user-select: none; transition: box-shadow calc(120ms * var(--vitesse)), background calc(150ms * var(--vitesse)); position: relative; }
+.jeton.saisi { cursor: grabbing; z-index: 3; box-shadow: 6px 8px 0 color-mix(in oklab, var(--encre) 80%, transparent); background: var(--pigment-lavis); transition: none; }
+.jeton .poignee { color: var(--encre-3); display: grid; place-items: center; }
+.jeton .rang-num { width: 26px; height: 26px; flex-shrink: 0; display: grid; place-items: center; border-radius: 50%; border: 1.5px solid var(--encre); font-family: var(--f-titre); font-size: .85rem; background: var(--papier-2); }
+.jeton .texte-jeton { flex: 1; }
+.jeton .fleches { display: flex; gap: .25rem; }
+.jeton .fleches button { width: 36px; height: 36px; display: grid; place-items: center; border: 1.5px solid var(--encre); border-radius: var(--r); background: var(--papier-2); padding: 0; }
+.jeton .fleches button:disabled { opacity: .3; }
+.jeton.juste { background: color-mix(in oklab, var(--ok) 20%, var(--papier)); }
+.jeton.faux { background: color-mix(in oklab, var(--ko) 14%, var(--papier)); }
+.jeton.fige { cursor: default; box-shadow: none; }
+
+/* Associer : liaisons dessinées entre deux colonnes. */
+.assoc { position: relative; display: grid; grid-template-columns: 1fr 1fr; gap: .55rem 3.2rem; }
+.assoc .colonne { display: flex; flex-direction: column; gap: .55rem; position: relative; z-index: 1; }
+.assoc .choix { min-height: 58px; font-size: .97rem; touch-action: none; }
+.assoc .choix.lie { border-color: var(--encre); background: color-mix(in oklab, var(--lien, var(--pigment)) 16%, var(--papier)); }
+.assoc .choix .marque { margin-left: auto; min-width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-size: .75rem; font-weight: 700; color: #fffaf0; background: var(--lien, transparent); }
+.assoc .choix:not(.lie) .marque { display: none; }
+.assoc .choix.juste { background: color-mix(in oklab, var(--ok) 22%, var(--papier)); }
+.assoc .choix.faux { background: color-mix(in oklab, var(--ko) 16%, var(--papier)); }
+.traits-assoc { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; z-index: 0; }
+.traits-assoc path { fill: none; stroke-width: 2.5; stroke-linecap: round; stroke-dasharray: 600; stroke-dashoffset: 600; animation: tracer calc(380ms * var(--vitesse)) ease forwards; }
+@keyframes tracer { to { stroke-dashoffset: 0; } }
+@media (max-width: 560px) { .assoc { gap: .45rem 1.4rem; } .assoc .choix { font-size: .88rem; padding: .55rem .6rem; } }
+
+/* Carte mémoire qui se retourne. */
+.carte-flash { position: relative; perspective: 1400px; min-height: 200px; }
+.carte-flash .face { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .6rem; padding: 1.4rem; text-align: center; border: 1.5px solid var(--encre); border-radius: var(--r-l); background: var(--papier); font-family: var(--f-titre); font-size: 1.35rem; line-height: 1.35; backface-visibility: hidden; -webkit-backface-visibility: hidden; transition: transform calc(600ms * var(--vitesse)) cubic-bezier(.3, 1.2, .4, 1); box-shadow: var(--ombre-tampon-s); }
+.carte-flash .verso { transform: rotateY(180deg); background: var(--pigment-lavis); }
+.carte-flash.retournee .recto { transform: rotateY(-180deg); }
+.carte-flash.retournee .verso { transform: rotateY(0); }
+.carte-flash + .btn { margin-top: 1rem; }
+.auto-eval { display: grid; grid-template-columns: repeat(4, 1fr); gap: .5rem; margin-top: 1rem; }
+.auto-eval button { display: flex; flex-direction: column; align-items: center; gap: .1rem; min-height: 64px; padding: .5rem .3rem; border: 1.5px solid var(--encre); border-radius: var(--r); background: var(--papier); box-shadow: var(--ombre-tampon-s); }
+.auto-eval button small { color: var(--encre-3); font-size: .74rem; }
+.auto-eval button:nth-child(1) { background: color-mix(in oklab, var(--ko) 12%, var(--papier)); }
+.auto-eval button:nth-child(4) { background: color-mix(in oklab, var(--ok) 14%, var(--papier)); }
+.auto-eval button.choisi { transform: translate(2px, 2px); box-shadow: none; outline: 2.5px solid var(--encre); }
+@media (max-width: 480px) { .auto-eval { grid-template-columns: repeat(2, 1fr); } }
+
+.pied-question { display: flex; gap: .7rem; align-items: center; justify-content: space-between; flex-wrap: wrap; margin-top: 1.3rem; padding-top: 1rem; border-top: 1px dashed var(--trait-fort); }
+.confiance { display: flex; gap: .35rem; align-items: center; flex-wrap: wrap; }
+.confiance .main-ecrite { font-size: 1.25rem; color: var(--encre-2); margin-right: .2rem; }
+.confiance button { padding: .3rem .7rem; min-height: 36px; border: 1.5px solid var(--trait-fort); border-radius: 999px; background: transparent; font-size: .86rem; color: var(--encre-2); }
+.confiance button[aria-pressed="true"] { border-color: var(--encre); background: var(--encre); color: var(--papier); }
+.indice { display: flex; gap: .5rem; align-items: flex-start; padding: .6rem .8rem; border: 1.5px dashed var(--attention); border-radius: var(--r); background: color-mix(in oklab, var(--attention) 12%, var(--papier)); font-size: .93rem; max-width: 420px; }
+
+/* Le tampon : verdict posé comme un coup de tampon encreur. */
+.tampon { position: absolute; top: 1rem; right: 1.1rem; padding: .25rem .8rem; border: 3px solid currentColor; border-radius: 8px; font-family: var(--f-titre); font-size: 1.15rem; text-transform: uppercase; letter-spacing: .08em; transform: rotate(-10deg); animation: tampon calc(420ms * var(--vitesse)) cubic-bezier(.2, 1.4, .4, 1) both; pointer-events: none; mix-blend-mode: multiply; opacity: .9; }
+[data-theme="nuit"] .tampon { mix-blend-mode: screen; }
+.tampon.ok { color: var(--ok); }
+.tampon.ko { color: var(--ko); }
+.petales { position: absolute; left: 50%; top: 40%; width: 0; height: 0; pointer-events: none; z-index: 4; }
+.petales i { position: absolute; width: 10px; height: 14px; border-radius: 60% 0 60% 0; background: var(--pigment); opacity: 0; animation: petale calc(1100ms * var(--vitesse)) cubic-bezier(.2, .7, .3, 1) forwards; }
+.petales i:nth-child(3n) { background: var(--or); }
+.petales i:nth-child(3n+1) { background: color-mix(in oklab, var(--pigment) 55%, #fff); }
+@keyframes petale { 0% { opacity: 1; transform: translate(0, 0) rotate(0); } 100% { opacity: 0; transform: translate(var(--dx), calc(var(--dy) + 120px)) rotate(var(--r)); } }
+
+.retour { margin-top: 1.3rem; padding: 1rem 1.15rem; border: 1.5px solid var(--encre); border-radius: var(--r-l); animation: apparaitre calc(380ms * var(--vitesse)) both; }
+.retour.ok { background: color-mix(in oklab, var(--ok) 11%, var(--papier)); }
+.retour.ko { background: color-mix(in oklab, var(--ko) 8%, var(--papier)); }
+.voix-lume { font-family: var(--f-main); font-size: 1.45rem; line-height: 1.25; margin: 0 0 .6rem; color: var(--encre); }
+.attendu { margin: .5rem 0; padding: .5rem .75rem; border-left: 3px solid var(--encre); background: var(--papier-2); font-weight: 600; }
+.remarque { display: flex; gap: .4rem; align-items: center; color: var(--attention); font-size: .9rem; margin: .4rem 0; }
+.explication { margin-top: .6rem; }
+.explication .etiquette { display: block; margin-bottom: .2rem; }
+.gain { display: inline-flex; align-items: center; gap: .2rem; font-weight: 600; color: var(--or); }
+
+/* Fin de séance. */
+.fin-seance { text-align: center; padding: 1.8rem 1.4rem; }
+.fin-seance .score { display: flex; justify-content: center; align-items: baseline; gap: .4rem; margin: .2rem 0 .4rem; }
+.fin-seance .score .grand { font-family: var(--f-titre); font-size: 4.2rem; line-height: 1; color: var(--pigment-texte); }
+.fin-seance .score .sur { font-family: var(--f-titre); font-size: 1.6rem; color: var(--encre-3); }
+.plantes-fin .pousse-fin { flex: 0 1 64px; min-width: 0; width: 64px; height: auto; }
+.plantes-fin { display: flex; justify-content: center; flex-wrap: nowrap; gap: .2rem; margin: 1rem 0; min-height: 70px; align-items: flex-end; border-bottom: 2px solid var(--trait-fort); padding-bottom: .2rem; }
+.pousse-fin { animation: pousser calc(800ms * var(--vitesse)) cubic-bezier(.2, .9, .3, 1.2) both; animation-delay: calc(var(--i) * 80ms); transform-origin: bottom center; }
+.bilan-chiffres { display: grid; grid-template-columns: repeat(4, 1fr); gap: .5rem; margin: 1rem 0; }
+.bilan-chiffres > div { padding: .6rem .3rem; border: 1.5px solid var(--encre); border-radius: var(--r); background: var(--papier); }
+.bilan-chiffres b { display: block; font-family: var(--f-titre); font-weight: 400; font-size: 1.5rem; }
+.bilan-chiffres span { font-size: .76rem; color: var(--encre-3); }
+@media (max-width: 520px) { .bilan-chiffres { grid-template-columns: repeat(2, 1fr); } }
+.niveau-fin { text-align: left; padding: .8rem 1rem; border: 1.5px solid var(--encre); border-radius: var(--r); background: color-mix(in oklab, var(--or) 10%, var(--papier)); }
+.niveau-fin .jauge { margin-top: .45rem; }
+.quetes-fin { display: flex; flex-wrap: wrap; gap: .4rem; justify-content: center; }
+.detail-questions { margin-top: 1.3rem; text-align: left; }
+.detail-questions summary { cursor: pointer; color: var(--encre-2); }
+.detail-questions ol { padding-left: 1.3rem; }
+.detail-questions li { margin: .35rem 0; font-size: .92rem; }
+.detail-questions li.ok::marker { color: var(--ok); }
+.detail-questions li.ko::marker { color: var(--ko); }
+.detail-questions em { color: var(--encre-3); }

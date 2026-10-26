@@ -8,8 +8,9 @@
     "start": "node tools/serve.mjs",
     "validate": "node tools/validate.mjs",
     "build:index": "node tools/build-index.mjs",
-    "test": "node --test tests/*.test.js && node tools/validate.mjs",
-    "parcours": "node tools/parcours.cjs"
+    "test": "node --test tests/*.test.js && node tools/validate.mjs && node tools/validate-cours.mjs",
+    "parcours": "node tools/parcours.cjs",
+    "validate:cours": "node tools/validate-cours.mjs"
   },
   "license": "MIT"
 }

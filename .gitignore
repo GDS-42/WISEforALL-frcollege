@@ -3,3 +3,4 @@ node_modules/
 *.log
 .planche-tmp/
 captures/
+tools/cartes/node_modules/

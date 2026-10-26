@@ -23,6 +23,10 @@ function ajouter(el, enfants) {
   }
 }
 
+/** append / replaceChildren qui ignorent null, undefined et false (les natifs écriraient « null »). */
+export function poser(el, ...enfants) { ajouter(el, enfants); return el; }
+export function remplacer(el, ...enfants) { vider(el); ajouter(el, enfants); return el; }
+
 export function vider(el) { while (el.firstChild) el.removeChild(el.firstChild); return el; }
 
 export function echapper(s) {

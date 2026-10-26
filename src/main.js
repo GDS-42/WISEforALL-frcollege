@@ -1,125 +1,157 @@
-// ÉCLORE — point d'entrée : routeur, coquille d'application, thème, profil.
+// ÉCLORE — point d'entrée : routeur, coquille, thème, profil.
 import { h, vider, toast } from "./ui/dom.js";
+import { icone } from "./ui/icones.js";
 import { listerProfils, profilActifId, chargerProfil, creerStore } from "./store.js";
 import { activerSon } from "./audio.js";
-import { ecranAccueil } from "./ui/accueil.js";
-import { ecranJardin } from "./ui/jardin.js";
-import { ecranAtlas, ecranMatiere } from "./ui/atlas.js";
-import { ecranChapitre } from "./ui/chapitre.js";
-import { ecranSession } from "./ui/session.js";
-import { ecranBilan } from "./ui/bilan.js";
-import { ecranAdulte } from "./ui/adulte.js";
-import { ecranReglages } from "./ui/reglages.js";
+import { initialiser, niveauDepuisXp, synchroniserXp } from "./gamification.js";
+import { injecterDefs } from "./ui/defs.js";
 
 export const app = {
   store: null,
+  nettoyages: [],
+  enQuittant(fn) { this.nettoyages.push(fn); },
   get etat() { return this.store?.etat; },
   naviguer(hash) { if (location.hash === hash) rendre(); else location.hash = hash; },
   rendre: () => rendre(),
+  rafraichirEntete: () => dessinerEntete(),
   chargerProfil(id) {
     const e = chargerProfil(id);
     if (!e) return false;
-    this.store = creerStore(e);
-    this.store.abonner(appliquerPrefs);
-    appliquerPrefs(e);
+    this.utiliserEtat(e);
     return true;
   },
-  utiliserEtat(e) { this.store = creerStore(e); this.store.abonner(appliquerPrefs); appliquerPrefs(e); },
+  utiliserEtat(e) {
+    initialiser(e);
+    synchroniserXp(e);
+    this.store = creerStore(e);
+    this.store.abonner(appliquerPrefs);
+    this.store.abonner(() => dessinerEntete());
+    appliquerPrefs(e);
+  },
   deconnecter() { this.store?.sauverMaintenant(); this.store = null; try { localStorage.removeItem("eclore:profil-actif"); } catch {} this.naviguer("#/profils"); },
 };
 
+function themeEffectif(p) {
+  const t = p?.theme || "auto";
+  if (t === "auto") return matchMedia("(prefers-color-scheme: dark)").matches ? "nuit" : "jour";
+  return t === "nuit" ? "nuit" : "jour";
+}
+
 function appliquerPrefs(e) {
-  const p = e.prefs;
-  const racine = document.documentElement, corps = document.body;
-  corps.dataset.theme = p.theme === "jour" ? "jour" : "nuit";
+  const p = e.prefs, racine = document.documentElement;
+  racine.dataset.theme = themeEffectif(p);
   racine.dataset.dys = p.dys ? "1" : "0";
   racine.dataset.animations = p.animations ? "1" : "0";
   racine.style.setProperty("--taille", String(p.taille || 1));
   activerSon(!!p.son);
-  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", p.theme === "jour" ? "#faf6ee" : "#0d1230");
 }
+matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", () => { if (app.etat) appliquerPrefs(app.etat); });
+
+const ecrans = {
+  accueil: () => import("./ui/accueil.js").then(m => m.ecranAccueil),
+  jardin: () => import("./ui/jardin.js").then(m => m.ecranJardin),
+  atlas: () => import("./ui/atlas.js").then(m => m.ecranAtlas),
+  matiere: () => import("./ui/atlas.js").then(m => m.ecranMatiere),
+  chapitre: () => import("./ui/chapitre.js").then(m => m.ecranChapitre),
+  session: () => import("./ui/session.js").then(m => m.ecranSession),
+  herbier: () => import("./ui/herbier.js").then(m => m.ecranHerbier),
+  boutique: () => import("./ui/herbier.js").then(m => m.ecranBoutique),
+  bilan: () => import("./ui/bilan.js").then(m => m.ecranBilan),
+  adulte: () => import("./ui/adulte.js").then(m => m.ecranAdulte),
+  reglages: () => import("./ui/reglages.js").then(m => m.ecranReglages),
+};
 
 const ROUTES = [
-  [/^#\/?$/, () => (app.store ? ecranJardin : ecranAccueil)],
-  [/^#\/profils$/, () => ecranAccueil],
-  [/^#\/jardin$/, () => ecranJardin],
-  [/^#\/atlas(?:\/(\w+))?$/, () => ecranAtlas],
-  [/^#\/matiere\/(\w+)\/([\w-]+)$/, () => ecranMatiere],
-  [/^#\/chapitre\/([\w-]+)$/, () => ecranChapitre],
-  [/^#\/session\/(\w+)(?:\/([\w-]+))?$/, () => ecranSession],
-  [/^#\/bilan$/, () => ecranBilan],
-  [/^#\/adulte$/, () => ecranAdulte],
-  [/^#\/reglages$/, () => ecranReglages],
+  [/^#\/?$/, () => (app.store ? "jardin" : "accueil")],
+  [/^#\/profils$/, () => "accueil"],
+  [/^#\/jardin$/, () => "jardin"],
+  [/^#\/atlas(?:\/(\w+))?$/, () => "atlas"],
+  [/^#\/matiere\/(\w+)\/([\w-]+)$/, () => "matiere"],
+  [/^#\/chapitre\/([\w-]+?)(?:\/(cours|entrainement|epreuve))?$/, () => "chapitre"],
+  [/^#\/session\/(\w+)(?:\/([\w-]+))?$/, () => "session"],
+  [/^#\/herbier$/, () => "herbier"],
+  [/^#\/boutique$/, () => "boutique"],
+  [/^#\/bilan$/, () => "bilan"],
+  [/^#\/adulte$/, () => "adulte"],
+  [/^#\/reglages$/, () => "reglages"],
 ];
 
 const NAV = [
-  ["#/jardin", "🌙", "Jardin"],
-  ["#/atlas", "🗺️", "Atlas"],
-  ["#/bilan", "🌿", "Bilan"],
-  ["#/reglages", "⚙️", "Réglages"],
+  ["#/jardin", "jardin", "Jardin", ["#/jardin", "#/boutique"]],
+  ["#/atlas", "atlas", "Atlas", ["#/atlas", "#/matiere", "#/chapitre"]],
+  ["#/herbier", "herbier", "Herbier", ["#/herbier"]],
+  ["#/bilan", "bilan", "Bilan", ["#/bilan", "#/adulte"]],
+  ["#/reglages", "reglages", "Réglages", ["#/reglages"]],
 ];
 
-let rendering = false;
+function dessinerEntete() {
+  const entete = document.getElementById("entete");
+  const hash = location.hash || "#/";
+  const enSession = hash.startsWith("#/session");
+  vider(entete);
+  entete.hidden = !app.store || enSession;
+  if (!app.store || enSession) return;
+  const e = app.etat;
+  const niv = niveauDepuisXp(e.gamif?.xp || 0);
+  entete.append(h("div", { class: "entete-int" },
+    h("a", { class: "logo", href: "#/jardin", "aria-label": "ÉCLORE, retour au jardin" },
+      h("img", { src: "assets/icone.svg", alt: "", width: 34, height: 34 }),
+      h("span", { class: "mot" }, "ÉCLORE"), h("span", { class: "sous", "aria-hidden": "true" }, "carnet de jardin")),
+    h("div", { class: "entete-droite" },
+      h("a", { class: "compteur niveau", href: "#/bilan", title: `Niveau ${niv.niveau} : ${niv.nom}${niv.xpSuivant ? ` — ${Math.round(niv.progression * 100)} % vers le suivant` : ""}` },
+        icone("feuille", { taille: 16 }), h("span", {}, `Niv. ${niv.niveau}`), h("span", { class: "jauge-mini", "aria-hidden": "true" }, h("i", { style: { width: `${Math.round(niv.progression * 100)}%` } }))),
+      h("a", { class: "compteur", href: "#/boutique", title: "Lumens : la lumière récoltée par ton effort. Dépense-les à la boutique du jardin." }, icone("lumen", { taille: 16 }), h("span", {}, String(e.lumens))),
+      h("span", { class: "compteur flamme", title: "Jours de suite" }, icone("flamme", { taille: 16 }), h("span", {}, String(e.serie.actuelle))),
+      h("a", { class: "compteur", href: "#/profils", title: "Changer de profil" }, icone("profil", { taille: 16 }), h("span", {}, e.profil.prenom)))));
+}
+
+let rendering = false, enAttente = false;
 async function rendre() {
-  if (rendering) return; rendering = true;
+  if (rendering) { enAttente = true; return; }
+  rendering = true;
   try {
     const hash = location.hash || "#/";
     const main = document.getElementById("contenu");
-    const entete = document.getElementById("entete");
     const nav = document.getElementById("navigation");
-    let ecran = null, params = [];
-    for (const [re, get] of ROUTES) { const m = hash.match(re); if (m) { ecran = get(); params = m.slice(1); break; } }
-    if (!ecran) { ecran = app.store ? ecranJardin : ecranAccueil; }
-    if (!app.store && ecran !== ecranAccueil) { location.hash = "#/profils"; return; }
-    const enSession = ecran === ecranSession;
-    // En-tête
-    vider(entete);
-    if (app.store && !enSession) {
-      const e = app.etat;
-      entete.append(h("div", { class: "entete-int" },
-        h("a", { class: "logo", href: "#/jardin", "aria-label": "ÉCLORE, accueil" }, h("img", { src: "assets/icone.svg", alt: "" }), "ÉCLORE"),
-        h("div", { class: "entete-droite" },
-          h("span", { class: "pastille", title: "Lumens : la lumière récoltée par ton effort" }, "✦ ", h("strong", {}, String(e.lumens))),
-          h("span", { class: "pastille", title: "Jours de suite" }, "🔥 ", h("strong", {}, String(e.serie.actuelle))),
-          h("a", { class: "pastille", href: "#/profils", title: "Changer de profil", style: { textDecoration: "none" } }, e.profil.prenom, " · ", e.profil.niveau))));
-    }
-    // Navigation
+    let nom = null, params = [];
+    for (const [re, get] of ROUTES) { const m = hash.match(re); if (m) { nom = get(); params = m.slice(1); break; } }
+    if (!nom) nom = app.store ? "jardin" : "accueil";
+    if (!app.store && nom !== "accueil") { location.hash = "#/profils"; return; }
+    const enSession = nom === "session";
+    dessinerEntete();
     vider(nav);
     nav.classList.toggle("cache", !app.store || enSession);
-    if (app.store && !enSession) for (const [href, ico, lib] of NAV) nav.append(h("a", { href, class: hash.startsWith(href) ? "actif" : "" }, h("span", { class: "ico", "aria-hidden": "true" }, ico), lib));
-    // Écran
+    if (app.store && !enSession) for (const [href, ico, lib, prefixes] of NAV) {
+      const actif = prefixes.some(p => hash.startsWith(p));
+      nav.append(h("a", { href, class: actif ? "actif" : "", "aria-current": actif ? "page" : null }, icone(ico, { taille: 22 }), h("span", {}, lib)));
+    }
+    document.body.dataset.ecran = nom;
+    const ecran = await ecrans[nom]();
+    for (const fn of app.nettoyages.splice(0)) { try { fn(); } catch {} }
     vider(main);
-    main.scrollTop = 0; window.scrollTo({ top: 0 });
+    window.scrollTo({ top: 0 });
     try { await ecran(main, params, app); }
     catch (err) {
       console.error(err);
-      main.append(h("div", { class: "carte" }, h("h2", {}, "Oups, une racine a cédé."), h("p", { class: "muet" }, String(err?.message || err)), h("a", { class: "bouton", href: "#/jardin" }, "Retour au jardin")));
+      main.append(h("div", { class: "feuillet" }, h("h2", {}, "Une racine a cédé."), h("p", { class: "muet" }, String(err?.message || err)), h("a", { class: "btn", href: "#/jardin" }, "Retour au jardin")));
     }
-  } finally { rendering = false; }
-}
-
-function lucioles() {
-  const zone = document.querySelector(".lucioles"); if (!zone) return;
-  for (let i = 0; i < 14; i++) {
-    const l = h("span", { class: "luciole" });
-    l.style.left = `${Math.random() * 100}%`; l.style.top = `${30 + Math.random() * 70}%`;
-    l.style.setProperty("--d", `${10 + Math.random() * 14}s`); l.style.setProperty("--delai", `${-Math.random() * 20}s`);
-    l.style.setProperty("--dx", `${(Math.random() - 0.5) * 160}px`); l.style.setProperty("--dy", `${-40 - Math.random() * 120}px`);
-    zone.append(l);
+    if (document.activeElement === document.body) main.focus({ preventScroll: true });
+  } finally {
+    rendering = false;
+    if (enAttente) { enAttente = false; rendre(); }
   }
 }
 
 function demarrer() {
-  lucioles();
+  injecterDefs();
   const id = profilActifId();
   if (id && listerProfils().some(p => p.id === id)) app.chargerProfil(id);
   if (!location.hash || location.hash === "#/") location.hash = app.store ? "#/jardin" : "#/";
   window.addEventListener("hashchange", rendre);
   rendre();
-  if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-    navigator.serviceWorker.register("sw.js").catch(() => {});
-  }
+  if ("serviceWorker" in navigator && location.protocol.startsWith("http") && location.hostname !== "localhost") navigator.serviceWorker.register("sw.js").catch(() => {});
   window.addEventListener("beforeunload", () => app.store?.sauverMaintenant());
+  document.addEventListener("visibilitychange", () => { if (document.hidden) app.store?.sauverMaintenant(); });
 }
 
 demarrer();

@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="fr" data-theme="jour">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ÉCLORE — démonstration des cartes</title>
+<link rel="stylesheet" href="../../src/styles/fonts.css">
+<link rel="stylesheet" href="../../src/styles/base.css">
+<link rel="stylesheet" href="../../src/styles/carte.css">
+<style>
+  body { padding: 0 16px 64px; }
+  .demo { max-width: 780px; margin: 0 auto; }
+  .demo-entete { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding: 24px 0 8px; }
+  .demo-entete h1 { margin: 0; font-size: 1.8rem; }
+  .demo-entete p { margin: 0; font-family: var(--f-main); font-size: 1.25rem; color: var(--encre-2); }
+  .demo-theme { min-height: 44px; padding: 0 14px; border: 1.5px solid var(--encre); border-radius: var(--r); background: var(--papier-2); box-shadow: var(--ombre-tampon-s, 2px 2px 0 var(--encre)); }
+  .demo-carte { margin: 28px 0 40px; }
+  .demo-carte > .tres-muet { margin: 0; }
+</style>
+</head>
+<body>
+<main class="demo">
+  <header class="demo-entete">
+    <div>
+      <h1>Cartes dessinées</h1>
+      <p>Bloc <code>carte</code> des cours : fonds monde et France, zones, repères, traits.</p>
+    </div>
+    <button type="button" class="demo-theme" id="theme">Thème nuit</button>
+  </header>
+  <div id="cartes"></div>
+</main>
+<script type="module">
+  import { rendreCarte } from "../../src/ui/carte.js";
+
+  const params = new URLSearchParams(location.search);
+  if (params.get("theme") === "nuit") document.documentElement.dataset.theme = "nuit";
+  const bouton = document.getElementById("theme");
+  const majBouton = () => { bouton.textContent = document.documentElement.dataset.theme === "nuit" ? "Thème jour" : "Thème nuit"; };
+  bouton.addEventListener("click", () => {
+    document.documentElement.dataset.theme = document.documentElement.dataset.theme === "nuit" ? "jour" : "nuit";
+    majBouton();
+  });
+  majBouton();
+
+  // Définitions SVG globales de l'application (filtres #aquarelle, #tremble), si le module existe.
+  if (params.get("filtres") !== "0") {
+    try { (await import("../../src/ui/defs.js")).injecterDefs?.(); } catch { /* les cartes s'en passent */ }
+  }
+
+  const UE = ["AT", "BE", "BG", "CY", "CZ", "DE", "DK", "EE", "ES", "FI", "FR", "GR", "HR", "HU", "IE", "IT", "LT", "LU", "LV", "MT", "NL", "PL", "PT", "RO", "SE", "SI", "SK"];
+
+  const exemples = [
+    {
+      pigment: "#a35d32", note: "Histoire 6e — cadre [-10, 28, 42, 47], repères seuls (pas de frontières actuelles colorées).",
+      bloc: {
+        t: "carte", fond: "monde", titre: "La Méditerranée antique", cadre: [-10, 28, 42, 47],
+        reperes: [
+          { nom: "Athènes", lat: 37.98, lon: 23.73 },
+          { nom: "Rome", lat: 41.9, lon: 12.5 },
+          { nom: "Carthage", lat: 36.85, lon: 10.33 },
+          { nom: "Alexandrie", lat: 31.2, lon: 29.92 },
+          { nom: "Jérusalem", lat: 31.78, lon: 35.22 },
+          { nom: "Massalia (Marseille)", lat: 43.3, lon: 5.37 },
+        ],
+        legende: "Les grandes cités autour de la *Mare Nostrum*.",
+      },
+    },
+    {
+      pigment: "#5f8a6e", note: "Géographie — monde entier (Equal Earth), zones ISO alpha-2.",
+      bloc: {
+        t: "carte", fond: "monde", titre: "Cinq pays parmi les plus peuplés du monde",
+        zones: ["BR", "IN", "NG", "CN", "US"],
+        legende: "Ensemble, ils rassemblent près de la moitié de l'humanité.",
+      },
+    },
+    {
+      pigment: "#a35d32", note: "Histoire 4e — traits (courbes de Bézier fléchées) et repères.",
+      bloc: {
+        t: "carte", fond: "monde", titre: "Le commerce triangulaire (XVIIIe siècle)", cadre: [-95, -8, 25, 58],
+        reperes: [
+          { nom: "Nantes", lat: 47.22, lon: -1.55 },
+          { nom: "Gorée", lat: 14.67, lon: -17.4 },
+          { nom: "Ouidah", lat: 6.36, lon: 2.08 },
+          { nom: "Saint-Domingue", lat: 19.76, lon: -72.2 },
+        ],
+        traits: [
+          { de: [47.22, -1.55], a: [14.67, -17.4], label: "tissus, armes, alcool" },
+          { de: [6.36, 2.08], a: [19.76, -72.2], label: "captifs africains" },
+          { de: [19.76, -72.2], a: [47.22, -1.55], label: "sucre, café, coton" },
+        ],
+        legende: "Les navires négriers partent des ports européens, achètent des captifs sur les côtes africaines et les vendent aux Amériques.",
+      },
+    },
+    {
+      pigment: "#5f8a6e", note: "Géographie — fond France, zones régions, repères.",
+      bloc: {
+        t: "carte", fond: "france", titre: "Quelques grandes villes de France",
+        zones: ["bretagne", "occitanie"],
+        reperes: [
+          { nom: "Paris", lat: 48.857, lon: 2.352 },
+          { nom: "Lyon", lat: 45.764, lon: 4.836 },
+          { nom: "Marseille", lat: 43.297, lon: 5.381 },
+          { nom: "Toulouse", lat: 43.605, lon: 1.444 },
+          { nom: "Lille", lat: 50.629, lon: 3.057 },
+          { nom: "Strasbourg", lat: 48.573, lon: 7.752 },
+        ],
+        legende: "En couleur : la Bretagne et l'Occitanie.",
+      },
+    },
+    {
+      pigment: "#7d4f73", note: "EMC — cadre [-12, 34, 35, 61], les 27 pays de l'Union européenne.",
+      bloc: {
+        t: "carte", fond: "monde", titre: "L'Union européenne", cadre: [-12, 34, 35, 61], zones: UE,
+        reperes: [
+          { nom: "Bruxelles", lat: 50.85, lon: 4.35 },
+          { nom: "Strasbourg", lat: 48.573, lon: 7.752 },
+        ],
+        legende: "27 États membres depuis 2020.",
+      },
+    },
+  ];
+
+  const conteneur = document.getElementById("cartes");
+  for (const ex of exemples) {
+    const section = document.createElement("section");
+    section.className = "demo-carte";
+    section.style.setProperty("--pigment", ex.pigment);
+    const note = document.createElement("p");
+    note.className = "tres-muet";
+    note.textContent = ex.note;
+    section.append(note, await rendreCarte(ex.bloc));
+    conteneur.append(section);
+  }
+  document.body.dataset.pret = "1";
+</script>
+</body>
+</html>

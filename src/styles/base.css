@@ -1,0 +1,243 @@
+/* ÉCLORE — socle « Herbier » : jetons, papier, typographie, composants. Voir docs/DESIGN.md. */
+
+/* ---------- Jetons ---------- */
+:root {
+  --papier: #f2e9d6;
+  --papier-2: #faf5e9;
+  --papier-3: #e8dcc3;
+  --encre: #2b2520;
+  --encre-2: #5a4f45;
+  --encre-3: #7d7164;
+  --trait: #cdbd9f;
+  --trait-fort: #a8977a;
+  --ok: #3f7a4a;
+  --ko: #b2412e;
+  --attention: #b07a12;
+  --or: #b8892a;
+  --pigment: #8a6d3b;
+  --f-titre: "Young Serif", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --f-texte: "Lexend", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --f-main: "Caveat", "Segoe Print", "Bradley Hand", cursive;
+  --r: 6px;
+  --r-l: 14px;
+  --ombre-tampon: 3px 3px 0 var(--encre);
+  --ombre-tampon-s: 2px 2px 0 var(--encre);
+  --ombre-douce: 0 1px 0 rgba(60, 40, 20, .06), 0 10px 24px -12px rgba(60, 40, 20, .28);
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 40px;
+  --taille: 1;
+  --interligne: 1.6;
+  --espacement: 0;
+  --vitesse: 1;
+  --grain-opacite: .5;
+  color-scheme: light;
+}
+[data-theme="nuit"] {
+  --papier: #161922;
+  --papier-2: #1e222e;
+  --papier-3: #10131a;
+  --encre: #ece4d3;
+  --encre-2: #c3b9a6;
+  --encre-3: #978d7c;
+  --trait: #39404f;
+  --trait-fort: #59617a;
+  --ok: #7cc48a;
+  --ko: #f08a74;
+  --attention: #e7b85a;
+  --or: #e2b85c;
+  --ombre-tampon: 3px 3px 0 #05070b;
+  --ombre-tampon-s: 2px 2px 0 #05070b;
+  --ombre-douce: 0 10px 28px -12px rgba(0, 0, 0, .7);
+  --grain-opacite: .25;
+  color-scheme: dark;
+}
+/* Jetons dérivés du pigment local : recalculés sur chaque élément pour suivre un --pigment posé en ligne. */
+:where(*) {
+  /* Mélange avec un blanc chaud plutôt qu'avec le papier crème : les pigments froids restent bleutés au lieu de griser. */
+  --pigment-lavis: color-mix(in srgb, var(--pigment) 16%, #fffcf5);
+  --pigment-lavis-2: color-mix(in srgb, var(--pigment) 30%, #fffcf5);
+  --pigment-texte: color-mix(in oklab, var(--pigment) 74%, #000);
+}
+[data-theme="nuit"] :where(*), :where([data-theme="nuit"]) {
+  --pigment-lavis: color-mix(in oklab, var(--pigment) 24%, var(--papier));
+  --pigment-lavis-2: color-mix(in oklab, var(--pigment) 40%, var(--papier));
+  --pigment-texte: color-mix(in oklab, var(--pigment) 62%, #fff);
+}
+[data-dys="1"] {
+  --f-texte: "Atkinson Hyperlegible", "Lexend", system-ui, sans-serif;
+  --f-titre: "Atkinson Hyperlegible", "Lexend", system-ui, sans-serif;
+  --interligne: 1.9; --espacement: .035em;
+}
+[data-animations="0"] *, [data-animations="0"] *::before, [data-animations="0"] *::after { animation: none !important; transition: none !important; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; } }
+
+/* ---------- Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html { font-size: calc(16px * var(--taille)); -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+body {
+  margin: 0; min-height: 100dvh; color: var(--encre); background-color: var(--papier);
+  font-family: var(--f-texte); font-weight: 350; line-height: var(--interligne); letter-spacing: var(--espacement);
+  overflow-x: hidden; padding-bottom: calc(84px + env(safe-area-inset-bottom));
+  -webkit-font-smoothing: antialiased;
+}
+/* Grain du papier : bruit SVG très léger + vignette. */
+body::before {
+  content: ""; position: fixed; inset: 0; z-index: -1; pointer-events: none; opacity: var(--grain-opacite);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .25 0 0 0 0 .15 0 0 0 .09 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    radial-gradient(120% 90% at 50% 0%, transparent 55%, color-mix(in oklab, var(--papier-3) 70%, transparent) 100%);
+}
+h1, h2, h3, h4 { font-family: var(--f-titre); font-weight: 400; line-height: 1.15; margin: 0 0 .45em; letter-spacing: -.005em; text-wrap: balance; }
+h1 { font-size: clamp(1.9rem, 4.2vw, 2.7rem); }
+h2 { font-size: clamp(1.4rem, 3vw, 1.85rem); }
+h3 { font-size: 1.18rem; }
+p { margin: 0 0 1em; text-wrap: pretty; }
+strong, b { font-weight: 600; }
+a { color: var(--pigment-texte); text-decoration-thickness: 1.5px; text-underline-offset: 3px; }
+button { font: inherit; letter-spacing: inherit; color: inherit; cursor: pointer; }
+input, select, textarea { font: inherit; letter-spacing: inherit; color: inherit; }
+mark { background: linear-gradient(100deg, transparent 2%, color-mix(in oklab, var(--or) 45%, transparent) 4%, color-mix(in oklab, var(--or) 38%, transparent) 94%, transparent 97%); color: inherit; padding: 0 .12em; border-radius: 3px; box-decoration-break: clone; -webkit-box-decoration-break: clone; }
+::selection { background: color-mix(in oklab, var(--pigment) 30%, var(--papier)); }
+:focus-visible { outline: 3px solid var(--pigment-texte); outline-offset: 3px; border-radius: var(--r); }
+img, svg { max-width: 100%; }
+.icone { flex-shrink: 0; vertical-align: -0.2em; }
+.saut { position: absolute; left: -999px; top: 8px; background: var(--encre); color: var(--papier); padding: .5rem 1rem; border-radius: var(--r); z-index: 100; }
+.saut:focus { left: 8px; }
+.visually-hidden, .sr { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.main-ecrite { font-family: var(--f-main); font-weight: 500; font-size: 1.35em; line-height: 1.2; letter-spacing: 0; }
+.etiquette { font-size: .72rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--encre-3); }
+.muet { color: var(--encre-2); }
+.tres-muet { color: var(--encre-3); font-size: .9rem; }
+.petit { font-size: .88rem; }
+
+/* ---------- Coquille ---------- */
+#entete { position: sticky; top: 0; z-index: 30; background: color-mix(in oklab, var(--papier) 88%, transparent); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border-bottom: 1.5px solid var(--encre); }
+.entete-int { max-width: 1120px; margin: 0 auto; padding: .55rem 1rem; display: flex; align-items: center; gap: 1rem; }
+.logo { display: flex; align-items: center; gap: .55rem; text-decoration: none; color: var(--encre); }
+.logo .mot { font-family: var(--f-titre); font-size: 1.35rem; letter-spacing: .16em; }
+.logo .sous { font-family: var(--f-main); font-size: 1.05rem; color: var(--encre-2); margin-left: .2rem; letter-spacing: 0; }
+.entete-droite { margin-left: auto; display: flex; align-items: center; gap: .45rem; }
+.compteur { display: inline-flex; align-items: center; gap: .35rem; padding: .28rem .6rem; border: 1.5px solid var(--encre); border-radius: var(--r); background: var(--papier-2); font-weight: 600; font-size: .88rem; font-variant-numeric: tabular-nums; text-decoration: none; color: var(--encre); }
+.compteur .icone { color: var(--or); }
+.compteur.flamme .icone { color: var(--ko); }
+.compteur.niveau { gap: .5rem; }
+.compteur.niveau .jauge-mini { width: 46px; height: 6px; border: 1px solid var(--encre); border-radius: 3px; overflow: hidden; }
+.compteur.niveau .jauge-mini > i { display: block; height: 100%; background: var(--or); }
+body { --cours-decalage: 64px; }
+body[data-ecran="session"] { --cours-decalage: 0px; }
+main { max-width: 1120px; margin: 0 auto; padding: 1.4rem 1rem 2.5rem; }
+#navigation { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; display: flex; justify-content: center; gap: 2px; padding: .35rem .4rem calc(.35rem + env(safe-area-inset-bottom)); background: var(--papier-2); border-top: 1.5px solid var(--encre); }
+#navigation a { flex: 1 1 0; max-width: 128px; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: .4rem .2rem .3rem; border-radius: var(--r); text-decoration: none; color: var(--encre-2); font-size: .72rem; font-weight: 500; position: relative; }
+#navigation a .icone { width: 22px; height: 22px; }
+#navigation a.actif { color: var(--encre); }
+#navigation a.actif::after { content: ""; position: absolute; left: 22%; right: 22%; bottom: 0; height: 3px; border-radius: 2px; background: var(--encre); }
+#navigation a:hover { color: var(--encre); background: var(--papier-3); }
+#navigation.cache { display: none; }
+@media (min-width: 1000px) {
+  body { padding-bottom: 0; padding-left: 92px; }
+  #navigation { top: 0; bottom: 0; right: auto; width: 92px; flex-direction: column; justify-content: flex-start; padding: 5.2rem .5rem 1rem; border-top: 0; border-right: 1.5px solid var(--encre); gap: .3rem; }
+  #navigation a { flex: 0 0 auto; max-width: none; padding: .7rem .2rem; font-size: .74rem; }
+  #navigation a.actif { background: var(--papier); box-shadow: var(--ombre-tampon-s); border: 1.5px solid var(--encre); }
+  #navigation a.actif::after { display: none; }
+  #entete { margin-left: 0; }
+}
+
+/* ---------- Feuillets & composants ---------- */
+.feuillet { background: var(--papier-2); border: 1.5px solid var(--encre); border-radius: var(--r-l); padding: 1.15rem 1.25rem; box-shadow: var(--ombre-douce); position: relative; }
+.feuillet + .feuillet { margin-top: 1rem; }
+.feuillet.plat { box-shadow: none; }
+.feuillet.pigmente { background: var(--pigment-lavis); }
+.feuillet > h2:first-child, .feuillet > h3:first-child { margin-top: 0; }
+.ruban::before { content: ""; position: absolute; top: -11px; left: 50%; width: 92px; height: 24px; transform: translateX(-50%) rotate(-2deg); background: color-mix(in oklab, var(--or) 32%, transparent); border-left: 1px dashed color-mix(in oklab, var(--encre) 18%, transparent); border-right: 1px dashed color-mix(in oklab, var(--encre) 18%, transparent); mix-blend-mode: multiply; }
+[data-theme="nuit"] .ruban::before { mix-blend-mode: screen; background: color-mix(in oklab, var(--or) 22%, transparent); }
+.grille { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr)); }
+.grille-2 { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); align-items: start; }
+.rang { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; }
+.rang.espace { justify-content: space-between; }
+.rang.centre { justify-content: center; }
+.pile { display: flex; flex-direction: column; gap: 1rem; }
+.separateur { border: 0; height: 10px; margin: 1.2rem 0; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='10'%3E%3Cpath d='M0 5 Q 15 1 30 5 T 60 5 T 90 5 T 120 5' fill='none' stroke='%23a8977a' stroke-width='1.3'/%3E%3C/svg%3E") repeat-x center; opacity: .8; }
+
+/* Boutons : étiquettes posées sur le papier, qui s'enfoncent quand on appuie. */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-height: 46px; padding: .62rem 1.15rem; border: 1.5px solid var(--encre); border-radius: var(--r); background: var(--papier-2); color: var(--encre); font-weight: 600; font-size: .98rem; text-decoration: none; box-shadow: var(--ombre-tampon-s); transition: transform calc(120ms * var(--vitesse)) ease, box-shadow calc(120ms * var(--vitesse)) ease, background calc(120ms * var(--vitesse)); user-select: none; }
+.btn:hover { transform: translate(-1px, -1px); box-shadow: var(--ombre-tampon); }
+.btn:active { transform: translate(2px, 2px); box-shadow: 0 0 0 var(--encre); }
+.btn:disabled, .btn[aria-disabled="true"] { opacity: .45; cursor: not-allowed; transform: none; box-shadow: none; }
+.btn.encre { background: var(--encre); color: var(--papier); }
+.btn.pigment { background: var(--pigment); color: #fffaf0; border-color: var(--encre); }
+[data-theme="nuit"] .btn.pigment { color: #10131a; background: color-mix(in oklab, var(--pigment) 75%, #fff); }
+.btn.or { background: var(--or); color: #1d1608; }
+.btn.discret { background: transparent; box-shadow: none; border-color: transparent; }
+.btn.discret:hover { background: var(--papier-3); transform: none; }
+.btn.contour { box-shadow: none; }
+.btn.petit { min-height: 36px; padding: .35rem .75rem; font-size: .88rem; }
+.btn.large { width: 100%; min-height: 54px; font-size: 1.05rem; }
+.btn.rond { width: 44px; min-height: 44px; padding: 0; border-radius: 50%; }
+.btn .icone { width: 1.15em; height: 1.15em; }
+.puce { display: inline-flex; align-items: center; gap: .3rem; padding: .16rem .5rem; border: 1px solid var(--trait-fort); border-radius: 4px; font-size: .78rem; font-weight: 500; color: var(--encre-2); background: var(--papier-2); white-space: nowrap; }
+.puce.pigment { border-color: var(--pigment-texte); color: var(--pigment-texte); background: var(--pigment-lavis); }
+.puce.encre { background: var(--encre); color: var(--papier); border-color: var(--encre); }
+.puce .icone { width: 13px; height: 13px; }
+
+/* Jauges hachurées, comme remplies au crayon. */
+.jauge { height: 12px; border: 1.5px solid var(--encre); border-radius: 7px; background: var(--papier); overflow: hidden; position: relative; }
+.jauge > span { display: block; height: 100%; width: var(--v, 0%); background: repeating-linear-gradient(-45deg, var(--pigment) 0 4px, color-mix(in oklab, var(--pigment) 70%, var(--papier)) 4px 7px); transition: width calc(700ms * var(--vitesse)) cubic-bezier(.2, .8, .2, 1); }
+.jauge.fine { height: 8px; border-width: 1px; }
+.jauge.or > span { background: repeating-linear-gradient(-45deg, var(--or) 0 4px, color-mix(in oklab, var(--or) 65%, var(--papier)) 4px 7px); }
+
+.champ { display: flex; flex-direction: column; gap: .35rem; }
+.champ label { font-weight: 500; font-size: .92rem; color: var(--encre-2); }
+.saisie, .champ input, .champ select { width: 100%; min-height: 50px; padding: .7rem .9rem; border: 1.5px solid var(--encre); border-radius: var(--r); background: var(--papier-2); color: var(--encre); font-size: 1.08rem; box-shadow: inset 2px 2px 0 color-mix(in oklab, var(--encre) 8%, transparent); }
+.saisie:focus, .champ input:focus, .champ select:focus { outline: 3px solid color-mix(in oklab, var(--pigment) 55%, transparent); outline-offset: 1px; }
+select option { color: #000; }
+.segments { display: inline-flex; border: 1.5px solid var(--encre); border-radius: var(--r); overflow: hidden; background: var(--papier-2); }
+.segments button { border: 0; border-right: 1.5px solid var(--encre); background: transparent; padding: .45rem .9rem; min-height: 40px; font-weight: 500; color: var(--encre-2); }
+.segments button:last-child { border-right: 0; }
+.segments button[aria-pressed="true"] { background: var(--encre); color: var(--papier); }
+.toggle { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .85rem 0; border-bottom: 1px dashed var(--trait-fort); }
+.toggle:last-child { border-bottom: 0; }
+.toggle .desc { color: var(--encre-3); font-size: .86rem; }
+.interrupteur { position: relative; flex-shrink: 0; width: 54px; height: 30px; border: 1.5px solid var(--encre); border-radius: 16px; background: var(--papier-3); padding: 0; transition: background calc(150ms * var(--vitesse)); }
+.interrupteur::after { content: ""; position: absolute; top: 3px; left: 3px; width: 21px; height: 21px; border-radius: 50%; background: var(--papier-2); border: 1.5px solid var(--encre); transition: left calc(180ms * var(--vitesse)) cubic-bezier(.3, 1.4, .5, 1); }
+.interrupteur[aria-checked="true"] { background: var(--ok); }
+.interrupteur[aria-checked="true"]::after { left: 26px; }
+
+/* Toasts : petites notes posées sur la page. */
+#toasts { position: fixed; left: 50%; bottom: calc(96px + env(safe-area-inset-bottom)); transform: translateX(-50%); z-index: 60; display: flex; flex-direction: column; gap: .6rem; pointer-events: none; width: min(92vw, 420px); }
+@media (min-width: 900px) { #toasts { left: auto; right: 24px; top: 72px; bottom: auto; transform: none; width: 360px; } }
+.toast { position: relative; display: flex; gap: .75rem; align-items: center; padding: .85rem 1rem; background: var(--papier-2); border: 1.5px solid var(--encre); border-radius: var(--r); box-shadow: var(--ombre-tampon); animation: poser calc(420ms * var(--vitesse)) cubic-bezier(.2, 1.3, .4, 1) both; }
+.toast .ico { width: 34px; height: 34px; flex-shrink: 0; display: grid; place-items: center; }
+.toast.succes { background: color-mix(in oklab, var(--or) 16%, var(--papier-2)); }
+@keyframes poser { from { opacity: 0; transform: translateY(18px) rotate(-2deg) scale(.96); } to { opacity: 1; transform: none; } }
+
+/* Lume parle : bulle manuscrite. */
+.lume-dit { display: flex; gap: .8rem; align-items: flex-end; }
+.lume-dit .lume { width: 66px; height: 66px; flex-shrink: 0; }
+.bulle { position: relative; padding: .7rem 1rem; background: var(--papier-2); border: 1.5px solid var(--encre); border-radius: 16px 16px 16px 4px; font-family: var(--f-main); font-size: 1.32rem; line-height: 1.25; color: var(--encre); }
+
+/* Apparitions. */
+.apparait { animation: apparaitre calc(700ms * var(--vitesse)) cubic-bezier(.2, .8, .2, 1) both; }
+.apparait-2 { animation: apparaitre calc(700ms * var(--vitesse)) calc(160ms * var(--vitesse)) cubic-bezier(.2, .8, .2, 1) both; }
+.apparait-3 { animation: apparaitre calc(700ms * var(--vitesse)) calc(320ms * var(--vitesse)) cubic-bezier(.2, .8, .2, 1) both; }
+.apparait-4 { animation: apparaitre calc(700ms * var(--vitesse)) calc(480ms * var(--vitesse)) cubic-bezier(.2, .8, .2, 1) both; }
+@keyframes apparaitre { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+@keyframes tampon { 0% { opacity: 0; transform: scale(1.8) rotate(-18deg); } 60% { opacity: 1; transform: scale(.92) rotate(-8deg); } 100% { opacity: 1; transform: scale(1) rotate(-10deg); } }
+@keyframes rebond { 0% { transform: scale(1); } 40% { transform: scale(1.12); } 100% { transform: scale(1); } }
+@keyframes secouer { 0%, 100% { transform: translateX(0); } 20% { transform: translateX(-5px); } 40% { transform: translateX(5px); } 60% { transform: translateX(-3px); } 80% { transform: translateX(3px); } }
+@keyframes pousser { from { transform: scaleY(.55) scaleX(.9); opacity: .3; } to { transform: none; opacity: 1; } }
+
+@media print {
+  body::before, #entete, #navigation, #toasts, .pas-impression { display: none !important; }
+  body { background: #fff; color: #000; padding: 0; }
+  .feuillet { box-shadow: none; break-inside: avoid; }
+}
+
+/* Petits écrans : l'en-tête et les sélecteurs segmentés tiennent dans la largeur. */
+@media (max-width: 640px) {
+  .entete-int { gap: .5rem; padding: .45rem .75rem; }
+  .logo .sous, .logo .mot { display: none; }
+  .entete-droite { gap: .3rem; min-width: 0; }
+  .compteur { padding: .25rem .45rem; font-size: .82rem; }
+  .compteur.niveau .jauge-mini { width: 26px; }
+  .entete-droite .compteur:last-child span { max-width: 6ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .segments { display: flex; flex-wrap: wrap; max-width: 100%; }
+  .segments button { flex: 1 1 auto; padding: .45rem .6rem; border-bottom: 1.5px solid var(--encre); margin-bottom: -1.5px; }
+}

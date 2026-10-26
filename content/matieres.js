@@ -1,21 +1,21 @@
 // Registre des matières du collège (cycle 3 : 6e ; cycle 4 : 5e, 4e, 3e).
-// Chaque matière a une couleur « bioluminescente » et une plante emblème pour le jardin.
+// Chaque matière a un pigment (voir docs/DESIGN.md) et une espèce de plante pour le jardin.
 export const NIVEAUX = ["6e", "5e", "4e", "3e"];
 
 export const MATIERES = {
-  "francais":          { nom: "Français",            court: "Fr",   couleur: "#ffb3c7", plante: "rose",      emoji: "📖", cycles: ["6e","5e","4e","3e"] },
-  "maths":             { nom: "Mathématiques",       court: "Math", couleur: "#8fd3ff", plante: "cristal",   emoji: "📐", cycles: ["6e","5e","4e","3e"] },
-  "histoire":          { nom: "Histoire",            court: "Hist", couleur: "#f4d58d", plante: "chene",     emoji: "🏛️", cycles: ["6e","5e","4e","3e"] },
-  "geographie":        { nom: "Géographie",          court: "Géo",  couleur: "#9be7a8", plante: "fougere",   emoji: "🌍", cycles: ["6e","5e","4e","3e"] },
-  "emc":               { nom: "Enseignement moral et civique", court: "EMC", couleur: "#c9b8ff", plante: "olivier", emoji: "🕊️", cycles: ["6e","5e","4e","3e"] },
-  "svt":               { nom: "Sciences de la vie et de la Terre", court: "SVT", couleur: "#7ef0c2", plante: "feuille", emoji: "🌱", cycles: ["6e","5e","4e","3e"] },
-  "physique-chimie":   { nom: "Physique-Chimie",     court: "PC",   couleur: "#ffd27f", plante: "lanterne",  emoji: "⚗️", cycles: ["6e","5e","4e","3e"] },
-  "technologie":       { nom: "Technologie",         court: "Techno", couleur: "#b8c4d6", plante: "engrenage", emoji: "⚙️", cycles: ["6e","5e","4e","3e"] },
-  "anglais":           { nom: "Anglais",             court: "Angl", couleur: "#ff9e9e", plante: "bruyere",   emoji: "🇬🇧", cycles: ["6e","5e","4e","3e"] },
-  "espagnol":          { nom: "Espagnol (LV2)",      court: "Esp",  couleur: "#ffb870", plante: "cactus",    emoji: "🇪🇸", cycles: ["5e","4e","3e"] },
-  "arts-plastiques":   { nom: "Arts plastiques",     court: "Arts", couleur: "#f7a8ff", plante: "iris",      emoji: "🎨", cycles: ["6e","5e","4e","3e"] },
-  "education-musicale":{ nom: "Éducation musicale",  court: "Mus",  couleur: "#a8d8ff", plante: "campanule", emoji: "🎵", cycles: ["6e","5e","4e","3e"] },
-  "eps":               { nom: "Éducation physique et sportive", court: "EPS", couleur: "#ffe08a", plante: "tournesol", emoji: "🏃", cycles: ["6e","5e","4e","3e"] },
+  "francais":          { nom: "Français",            court: "Fr",   couleur: "#c4553d", plante: "rose",      emoji: "📖", cycles: ["6e","5e","4e","3e"] },
+  "maths":             { nom: "Mathématiques",       court: "Math", couleur: "#3d5a99", plante: "cristal",   emoji: "📐", cycles: ["6e","5e","4e","3e"] },
+  "histoire":          { nom: "Histoire",            court: "Hist", couleur: "#a35d32", plante: "chene",     emoji: "🏛️", cycles: ["6e","5e","4e","3e"] },
+  "geographie":        { nom: "Géographie",          court: "Géo",  couleur: "#5f8a6e", plante: "fougere",   emoji: "🌍", cycles: ["6e","5e","4e","3e"] },
+  "emc":               { nom: "Enseignement moral et civique", court: "EMC", couleur: "#7d4f73", plante: "olivier", emoji: "🕊️", cycles: ["6e","5e","4e","3e"] },
+  "svt":               { nom: "Sciences de la vie et de la Terre", court: "SVT", couleur: "#5a8a3a", plante: "feuille", emoji: "🌱", cycles: ["6e","5e","4e","3e"] },
+  "physique-chimie":   { nom: "Physique-Chimie",     court: "PC",   couleur: "#b86f32", plante: "lanterne",  emoji: "⚗️", cycles: ["6e","5e","4e","3e"] },
+  "technologie":       { nom: "Technologie",         court: "Techno", couleur: "#56707e", plante: "engrenage", emoji: "⚙️", cycles: ["6e","5e","4e","3e"] },
+  "anglais":           { nom: "Anglais",             court: "Angl", couleur: "#a83e48", plante: "bruyere",   emoji: "🇬🇧", cycles: ["6e","5e","4e","3e"] },
+  "espagnol":          { nom: "Espagnol (LV2)",      court: "Esp",  couleur: "#cc8a24", plante: "cactus",    emoji: "🇪🇸", cycles: ["5e","4e","3e"] },
+  "arts-plastiques":   { nom: "Arts plastiques",     court: "Arts", couleur: "#b04a82", plante: "iris",      emoji: "🎨", cycles: ["6e","5e","4e","3e"] },
+  "education-musicale":{ nom: "Éducation musicale",  court: "Mus",  couleur: "#2c7b80", plante: "campanule", emoji: "🎵", cycles: ["6e","5e","4e","3e"] },
+  "eps":               { nom: "Éducation physique et sportive", court: "EPS", couleur: "#d06a2c", plante: "tournesol", emoji: "🏃", cycles: ["6e","5e","4e","3e"] },
 };
 
 // Les cinq domaines du socle commun de connaissances, de compétences et de culture.

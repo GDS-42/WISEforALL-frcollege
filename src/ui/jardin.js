@@ -1,93 +1,130 @@
-// ÉCLORE — Le jardin : vue d'ensemble vivante du niveau, rituel du jour, voix de Lume.
-import { h, svg, pluriel } from "./dom.js";
+// ÉCLORE — Le jardin : la scène vivante du niveau, le rituel du jour, les quêtes, le niveau.
+import { h, svg, pluriel, toast, poser, remplacer } from "./dom.js";
+import { icone } from "./icones.js";
 import { chargerNiveau, MATIERES } from "../content.js";
 import { nbDus, maitrise, couverture, statsGlobales } from "../engine.js";
 import { plante } from "../plants.js";
+import { lume, paysage, decoration } from "./illustrations.js";
 import { salut, citationDuJour } from "../mentor.js";
 import { cleJour } from "../store.js";
+import { quetesDuJour, reclamerQuete, niveauDepuisXp, verifierNiveau, CATALOGUE } from "../gamification.js";
+import { sons } from "../audio.js";
 
-export async function ecranJardin(main, params, app) {
-  const e = app.etat;
-  const modules = await chargerNiveau(e.profil.niveau);
-  const visibles = modules.filter(m => m.matiere !== "espagnol" || e.profil.lv2 !== "aucune");
-  const tous = visibles.flatMap(m => m.chapitres.flatMap(c => c.items));
-  const dus = nbDus(tous, e);
-  const stats = statsGlobales(e, tous);
-  const aujourdhui = e.jours[cleJour()] || { n: 0, ok: 0, ms: 0 };
-  const objectif = e.prefs.objectifItems || 15;
-  const [cit, auteur] = citationDuJour();
+export function momentDuJour(d = new Date()) {
+  const hh = d.getHours();
+  return hh >= 5 && hh < 8 ? "aube" : hh < 18 && hh >= 8 ? "jour" : hh >= 18 && hh < 21 ? "crepuscule" : "nuit";
+}
 
-  // Scène du jardin : une plante par matière, sur deux rangs de collines.
-  const n = visibles.length;
-  const deuxRangs = n > 7;
-  const colonnes = deuxRangs ? Math.ceil(n / 2) : n;
-  const largeur = Math.max(500, colonnes * 100), hauteur = deuxRangs ? 225 : 185;
-  const scene = svg("svg", { viewBox: `0 0 ${largeur} ${hauteur}`, role: "img", "aria-label": "Ton jardin : une plante par matière, qui grandit avec ta mémoire." });
-  const colline = (y, amp, fill, op) => svg("path", { d: `M0 ${hauteur} L0 ${y} Q ${largeur * 0.25} ${y - amp} ${largeur * 0.5} ${y} T ${largeur} ${y} L${largeur} ${hauteur} Z`, fill, opacity: op });
-  scene.append(colline(hauteur - 105, 34, "var(--sol)", 0.45), colline(hauteur - 62, 24, "var(--sol)", 0.75), colline(hauteur - 22, 12, "var(--sol)", 1));
-  const boutonsPlantes = [];
-  visibles.forEach((m, i) => {
+export function modulesVisibles(modules, e) { return modules.filter(m => m.matiere !== "espagnol" || e.profil.lv2 !== "aucune"); }
+
+/** Scène du jardin : paysage peint, une plante par matière (deux rangs), décorations placées. */
+export function sceneJardin(modules, e, { animer = true } = {}) {
+  const L = 1000, H = 380;
+  const s = svg("svg", { viewBox: `0 0 ${L} ${H}`, role: "img", "aria-label": `Ton jardin : ${modules.length} plantes, une par matière, qui grandissent avec ta mémoire.` });
+  // En thème nuit, le jardin passe à la nuit quelle que soit l'heure (lune, lucioles, papier bleu).
+  const moment = document.documentElement.dataset.theme === "nuit" ? "nuit" : momentDuJour();
+  s.append(paysage({ largeur: L, hauteur: H, moment }));
+  const g = e.gamif?.jardin || {};
+  const decos = Object.entries(g).filter(([, v]) => v && Number.isFinite(v.x));
+  const rangs = [svg("g"), svg("g"), svg("g")];
+  for (const [id, v] of decos) {
+    const d = svg("g", { transform: `translate(${40 + v.x * (L - 160)} ${H - 150}) scale(1.05)` });
+    d.append(decoration(id));
+    rangs[0].append(d);
+  }
+  const n = modules.length, colonnes = Math.ceil(n / 2), pas = (L - 80) / colonnes;
+  const liens = [];
+  modules.forEach((m, i) => {
     const info = MATIERES[m.matiere];
     const items = m.chapitres.flatMap(c => c.items);
     const mt = maitrise(items, e), cv = couverture(items, e);
-    const s = cv === 0 ? 0 : Math.min(5, Math.max(1, Math.round((mt * 0.7 + cv * 0.3) * 6)));
+    const stade = cv === 0 ? 0 : Math.min(5, Math.max(1, Math.round((mt * 0.7 + cv * 0.3) * 6)));
     const soif = nbDus(items, e) > Math.max(5, items.length * 0.1);
-    const rang = deuxRangs ? i % 2 : 1;             // 0 = arrière, 1 = avant
-    const col = deuxRangs ? Math.floor(i / 2) : i;
-    const pas = largeur / colonnes;
-    const x = pas * (col + 0.5) + (rang === 0 ? pas * 0.22 : -pas * 0.1);
-    const ySol = rang === 0 ? hauteur - 78 : hauteur - 26;
-    const echelle = (rang === 0 ? 0.85 : 1.15) * (0.85 + (s / 5) * 0.5);
-    const g = svg("g", { transform: `translate(${x - 40 * echelle} ${ySol - 120 * echelle}) scale(${echelle})` });
-    g.append(plante({ forme: info.plante, couleur: info.couleur, stade: s, graine: m.id + e.profil.graine, soif }));
-    const lien = svg("a", { href: `#/matiere/${m.niveau}/${m.matiere}`, class: "plante-bouton", "aria-label": `${info.nom} : ${Math.round(mt * 100)} % de maîtrise` });
-    lien.append(g);
-    lien.append(svg("text", { x, y: ySol + (rang === 0 ? 16 : 20), "text-anchor": "middle", "font-size": rang === 0 ? 15 : 18, fill: rang === 0 ? "var(--texte-3)" : "var(--texte-2)", "font-family": "var(--police-texte)", "font-weight": 700 }, info.court));
-    if (rang === 0) scene.insertBefore(lien, scene.childNodes[2]); else scene.append(lien);
-    boutonsPlantes.push(lien);
+    const arriere = i % 2 === 0, col = Math.floor(i / 2);
+    const x = 40 + pas * (col + 0.5) + (arriere ? pas * 0.2 : -pas * 0.18);
+    const ySol = arriere ? H - 88 : H - 30;
+    const ech = (arriere ? 0.95 : 1.22) * (0.82 + stade * 0.08) * (stade === 0 ? 1.45 : stade === 1 ? 1.2 : 1); // les graines restent visibles
+    const lien = svg("a", { href: `#/matiere/${m.niveau}/${m.matiere}`, class: "plante-lien", "aria-label": `${info.nom} : ${Math.round(mt * 100)} % de maîtrise${soif ? ", a soif" : ""}` });
+    const gp = svg("g", { transform: `translate(${x - 40 * ech} ${ySol - 120 * ech}) scale(${ech})` });
+    gp.append(plante({ forme: info.plante, couleur: info.couleur, stade, graine: m.id + e.profil.graine, soif }));
+    lien.append(gp, svg("text", { x, y: ySol + 19, "text-anchor": "middle", class: "nom-plante" }, info.court));
+    (arriere ? rangs[1] : rangs[2]).append(lien);
+    liens.push(gp);
   });
-
-  const mentorTexte = dus > 0
-    ? `${salut(e.profil.prenom)} ${pluriel(dus, "plante a", "plantes ont")} soif : ${dus > 1 ? "elles" : "elle"} ${dus > 1 ? "attendent" : "attend"} une goutte de ta mémoire.`
-    : stats.vus === 0 ? `${salut(e.profil.prenom)} Tout est encore graine ici. Choisis une matière dans l'Atlas, et plantons.`
-    : `${salut(e.profil.prenom)} Rien n'a soif aujourd'hui. C'est le moment idéal pour découvrir du neuf.`;
-
-  main.append(
-    h("section", { class: "carte", style: { padding: ".6rem" } },
-      h("div", { class: "jardin-scene" }, h("div", { class: "lune", "aria-hidden": "true" }), scene),
-      h("div", { class: "legende-jardin" }, h("span", {}, "🌱 graine"), h("span", {}, "🌿 pousse"), h("span", {}, "🌸 fleur"), h("span", {}, "🌳 arbre"), h("span", { class: "muet" }, "· une plante pâle a soif : des révisions l'attendent"))),
-    h("section", { class: "carte", style: { marginTop: "1rem" } },
-      h("div", { class: "mentor" }, h("div", { class: "lume", "aria-hidden": "true" }), h("div", { class: "bulle" }, mentorTexte))),
-    h("section", { class: "carte" },
-      h("div", { class: "rang espace", style: { marginBottom: ".8rem" } }, h("h2", { style: { margin: 0 } }, "Le rituel du jour"), h("span", { class: "tres-muet" }, `${aujourdhui.n} / ${objectif} questions`)),
-      h("div", { class: "barre", style: { marginBottom: "1rem" } }, h("span", { style: { "--v": `${Math.min(100, (aujourdhui.n / objectif) * 100)}%`, "--c": "var(--or)" } })),
-      h("div", { class: "actions-jardin" },
-        h("a", { class: `action ${dus > 0 ? "prioritaire" : ""}`, href: "#/session/arroser" }, h("span", { class: "ico" }, "💧"), h("strong", {}, "Arroser"), h("span", { class: "desc" }, dus > 0 ? `${pluriel(dus, "révision")} à faire, toutes matières mêlées.` : "Consolider ce qui est fragile.")),
-        h("a", { class: `action ${dus === 0 ? "prioritaire" : ""}`, href: "#/atlas" }, h("span", { class: "ico" }, "🌱"), h("strong", {}, "Découvrir"), h("span", { class: "desc" }, "Choisir un chapitre et planter de nouvelles graines.")),
-        h("a", { class: "action", href: "#/session/defi" }, h("span", { class: "ico" }, "⚡"), h("strong", {}, "Défi éclair"), h("span", { class: "desc" }, "10 questions mêlées, chronométrées. Pour s'entraîner au brevet.")),
-        derniereActivite(e))),
-    h("section", { class: "grille-2" },
-      h("div", { class: "carte" },
-        h("h3", {}, "En un coup d'œil"),
-        h("div", { class: "rituel" },
-          stat(stats.vus, `graine${stats.vus > 1 ? "s" : ""} plantée${stats.vus > 1 ? "s" : ""}`, `sur ${stats.total}`),
-          stat(stats.stades[4] + stats.stades[5], "en pleine floraison"),
-          stat(e.serie.actuelle, `jour${e.serie.actuelle > 1 ? "s" : ""} de suite`, e.serie.record > e.serie.actuelle ? `record : ${e.serie.record}` : ""),
-          stat(stats.minutes, "minutes d'attention"))),
-      h("div", { class: "carte" },
-        h("h3", {}, "Une lanterne pour la route"),
-        h("blockquote", { class: "citation" }, cit, h("small", {}, "— ", auteur)))));
-
-  // Petite animation de pousse à l'arrivée
-  requestAnimationFrame(() => boutonsPlantes.forEach((b, i) => setTimeout(() => b.querySelector(".plante")?.classList.add("pousse"), i * 70)));
+  s.append(...rangs);
+  if (animer) requestAnimationFrame(() => liens.forEach((g2, i) => setTimeout(() => g2.querySelector(".plante")?.classList.add("pousse"), 60 * i)));
+  return s;
 }
 
-function stat(valeur, libelle, sous = "") {
-  return h("div", { class: "stat" }, h("div", { class: "valeur" }, String(valeur)), h("div", { class: "libelle" }, libelle), sous ? h("div", { class: "tres-muet" }, sous) : null);
-}
+export async function ecranJardin(main, params, app) {
+  const e = app.etat;
+  const modules = modulesVisibles(await chargerNiveau(e.profil.niveau), e);
+  const tous = modules.flatMap(m => m.chapitres.flatMap(c => c.items));
+  const dus = nbDus(tous, e);
+  const stats = statsGlobales(e, tous);
+  const jour = e.jours[cleJour()] || { n: 0 };
+  const objectif = e.prefs.objectifItems || 15;
+  const [cit, auteur] = citationDuJour();
+  let quetes = [];
+  app.store.maj(x => { quetes = quetesDuJour(x, Date.now(), { matieres: modules.length }); });
+  const niv = niveauDepuisXp(e.gamif.xp);
 
-function derniereActivite(e) {
+  const texteLume = dus > 0
+    ? `${salut(e.profil.prenom)} ${pluriel(dus, "graine a", "graines ont")} soif aujourd'hui.`
+    : stats.vus === 0 ? `${salut(e.profil.prenom)} Tout est encore graine. Choisis une matière et plantons.`
+    : `${salut(e.profil.prenom)} Rien n'a soif. Un bon jour pour découvrir du neuf.`;
+  const lumeSvg = lume({ humeur: dus > 0 ? "encourage" : stats.vus === 0 ? "calme" : "joie" }); lumeSvg.classList.add("lume");
+
+  const scene = h("section", { class: "scene-jardin apparait", "aria-label": "Ton jardin" }, sceneJardin(modules, e), h("div", { class: "lume-dit" }, lumeSvg, h("p", { class: "bulle", style: { margin: 0 } }, texteLume)));
+
+  const action = (href, ico, titre, desc, { prioritaire = false, pastille = null, pigment = null } = {}) =>
+    h("a", { class: `action ${prioritaire ? "prioritaire" : ""}`, href, style: pigment ? { "--pigment": pigment } : null }, icone(ico), h("strong", {}, titre), h("span", { class: "desc" }, desc), pastille ? h("span", { class: "pastille" }, String(pastille)) : null);
   const derniere = [...e.journal].reverse().find(s => s.chapitre);
-  if (!derniere) return h("a", { class: "action", href: "#/bilan" }, h("span", { class: "ico" }, "🧭"), h("strong", {}, "Mon bilan"), h("span", { class: "desc" }, "Voir où j'en suis, matière par matière."));
-  return h("a", { class: "action", href: `#/chapitre/${derniere.chapitre}` }, h("span", { class: "ico" }, "↩︎"), h("strong", {}, "Reprendre"), h("span", { class: "desc" }, "Revenir au dernier chapitre travaillé."));
+  const rituel = h("section", { class: "feuillet ruban" },
+    h("div", { class: "rituel-entete" },
+      h("div", { class: "anneau", style: { "--p": Math.min(100, Math.round(jour.n / objectif * 100)) }, role: "img", "aria-label": `${jour.n} questions sur ${objectif} aujourd'hui` }, h("span", {}, `${Math.min(jour.n, 999)}`)),
+      h("div", {}, h("p", { class: "date-main" }, new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })), h("h2", { style: { margin: 0 } }, "Le rituel du jour"), h("span", { class: "tres-muet" }, jour.n >= objectif ? "Objectif atteint. Tout le reste est du bonus." : `${objectif - jour.n} questions pour atteindre ton objectif`))),
+    h("div", { class: "actions" },
+      action("#/session/arroser", "goutte", "Arroser", dus ? "Les révisions du jour, toutes matières mêlées." : "Consolider ce qui est fragile.", { prioritaire: dus > 0, pastille: dus || null, pigment: "#2c7b80" }),
+      action("#/atlas", "graine", "Découvrir", "Lire un cours et planter de nouvelles graines.", { prioritaire: dus === 0, pigment: "#5a8a3a" }),
+      action("#/session/defi", "eclair", "Défi éclair", "Dix questions mêlées, chronométrées.", { pigment: "#cc8a24" }),
+      derniere ? action(`#/chapitre/${derniere.chapitre}`, "recommencer", "Reprendre", "Revenir au dernier chapitre travaillé.", { pigment: "#7d4f73" })
+        : action("#/herbier", "herbier", "Herbier", "Ta collection de planches botaniques.", { pigment: "#7d4f73" })));
+
+  const listeQuetes = h("div", {});
+  const dessinerQuetes = () => {
+    remplacer(listeQuetes, ...quetes.map(q => {
+      const faite = q.progres >= q.objectif;
+      return h("div", { class: `quete ${faite ? "faite" : ""} ${q.reclamee ? "reclamee" : ""}` },
+        h("span", { class: "case", "aria-hidden": "true" }, faite ? icone("valider", { taille: 16 }) : null),
+        h("div", {}, h("div", { class: "libelle" }, q.libelle), h("div", { class: "jauge fine or", role: "progressbar", "aria-valuemin": 0, "aria-valuemax": q.objectif, "aria-valuenow": Math.min(q.progres, q.objectif), "aria-label": q.libelle }, h("span", { style: { "--v": `${Math.min(100, q.progres / q.objectif * 100)}%` } }))),
+        faite && !q.reclamee
+          ? h("button", { class: "btn or petit", onclick: () => {
+              let gain = 0, notif = null;
+              app.store.maj(x => { gain = reclamerQuete(x, q.id); notif = verifierNiveau(x); quetes = quetesDuJour(x); });
+              sons.succes(); toast(`Quête accomplie : +${gain} lumens`, { icone: "✦", classe: "succes" });
+              if (notif) toast(`Niveau ${notif.niveau} : ${notif.nom} !`, { icone: "🌿", classe: "succes", duree: 5000 });
+              dessinerQuetes();
+            } }, icone("cadeau", { taille: 16 }), `+${q.recompense}`)
+          : h("span", { class: "recompense" }, icone("lumen", { taille: 14 }), `${q.recompense}`));
+    }));
+  };
+  dessinerQuetes();
+
+  const prochaineDeco = CATALOGUE.find(a => !e.gamif.jardin[a.id]);
+  poser(main, scene,
+    h("div", { class: "jardin-grille" },
+      rituel,
+      h("div", { class: "pile" },
+        h("section", { class: "feuillet" }, h("h2", { style: { fontSize: "1.35rem" } }, "Quêtes du jour"), listeQuetes),
+        h("section", { class: "feuillet" },
+          h("div", { class: "niveau-carte" }, h("div", { class: "medaillon", "aria-hidden": "true" }, String(niv.niveau)),
+            h("div", { style: { flex: 1 } }, h("span", { class: "etiquette" }, `Niveau ${niv.niveau}`), h("div", { class: "nom-niveau" }, niv.nom),
+              h("div", { class: "jauge or", style: { marginTop: ".4rem" }, role: "progressbar", "aria-label": "Progression vers le niveau suivant", "aria-valuenow": Math.round(niv.progression * 100), "aria-valuemin": 0, "aria-valuemax": 100 }, h("span", { style: { "--v": `${Math.round(niv.progression * 100)}%` } })),
+              h("div", { class: "tres-muet", style: { marginTop: ".3rem" } }, niv.xpSuivant ? `${e.gamif.xp} / ${niv.xpSuivant} lumens récoltés` : "Niveau maximal : ton jardin est une forêt."))),
+          h("hr", { class: "separateur" }),
+          h("div", { class: "rang espace" },
+            h("span", { class: "muet petit" }, prochaineDeco ? `Prochaine décoration : ${prochaineDeco.nom} (${prochaineDeco.prix} ✦)` : "Ton jardin est entièrement décoré."),
+            h("a", { class: "btn petit", href: "#/boutique" }, icone("boutique", { taille: 16 }), "Boutique"))),
+        h("section", { class: "feuillet" }, h("blockquote", { class: "citation-jour" }, cit, h("footer", {}, "— ", auteur))))));
 }

@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ÉCLORE — démo du cours illustré</title>
+  <!-- Usage : node tools/serve.mjs 8793 puis http://localhost:8793/tools/demo-cours.html
+       Paramètres : ?cours=maths|test  &theme=jour|nuit  &animations=0 -->
+  <link rel="stylesheet" href="../src/styles/fonts.css">
+  <link rel="stylesheet" href="../src/styles/carte.css">
+  <link rel="stylesheet" href="../src/styles/cours.css">
+  <style>
+    /* Jetons « Herbier » (docs/DESIGN.md), jour et nuit — mêmes valeurs que src/styles/base.css. */
+    :root {
+      --papier: #f2e9d6; --papier-2: #faf5e9; --papier-3: #e8dcc3;
+      --encre: #2b2520; --encre-2: #5a4f45; --encre-3: #7d7164;
+      --trait: #cdbd9f; --trait-fort: #a8977a;
+      --ok: #3f7a4a; --ko: #b2412e; --attention: #b07a12; --or: #b8892a;
+      --pigment: #8a6d3b;
+      --f-titre: "Young Serif", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+      --f-texte: "Lexend", "Segoe UI", system-ui, -apple-system, sans-serif;
+      --f-main: "Caveat", "Segoe Print", "Bradley Hand", cursive;
+      --r: 6px; --r-l: 14px;
+      --ombre-tampon: 3px 3px 0 var(--encre); --ombre-tampon-s: 2px 2px 0 var(--encre);
+      --ombre-douce: 0 1px 0 rgba(60, 40, 20, .06), 0 10px 24px -12px rgba(60, 40, 20, .28);
+      --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 40px;
+      --interligne: 1.6;
+      color-scheme: light;
+    }
+    [data-theme="nuit"] {
+      --papier: #161922; --papier-2: #1e222e; --papier-3: #10131a;
+      --encre: #ece4d3; --encre-2: #c3b9a6; --encre-3: #978d7c;
+      --trait: #39404f; --trait-fort: #59617a;
+      --ok: #7cc48a; --ko: #f08a74; --attention: #e7b85a; --or: #e2b85c;
+      --ombre-tampon: 3px 3px 0 #05070b; --ombre-tampon-s: 2px 2px 0 #05070b;
+      --ombre-douce: 0 10px 28px -12px rgba(0, 0, 0, .7);
+      color-scheme: dark;
+    }
+    :where(*) {
+      --pigment-lavis: color-mix(in oklab, var(--pigment) 17%, var(--papier));
+      --pigment-lavis-2: color-mix(in oklab, var(--pigment) 32%, var(--papier));
+      --pigment-texte: color-mix(in oklab, var(--pigment) 74%, #000);
+    }
+    [data-theme="nuit"] :where(*), :where([data-theme="nuit"]) {
+      --pigment-lavis: color-mix(in oklab, var(--pigment) 24%, var(--papier));
+      --pigment-lavis-2: color-mix(in oklab, var(--pigment) 40%, var(--papier));
+      --pigment-texte: color-mix(in oklab, var(--pigment) 62%, #fff);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    body { margin: 0; background: var(--papier); color: var(--encre); font-family: var(--f-texte); font-weight: 350; line-height: 1.6; -webkit-font-smoothing: antialiased; }
+    button { font: inherit; color: inherit; }
+    .demo-barre { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1rem; padding: .6rem 16px; border-bottom: 1.5px solid var(--encre); background: var(--papier-2); }
+    .demo-barre strong { font-family: var(--f-titre); font-weight: 400; font-size: 1.15rem; letter-spacing: .12em; }
+    .demo-barre .groupe { display: flex; gap: .35rem; flex-wrap: wrap; }
+    .demo-barre button { min-height: 40px; padding: .3rem .8rem; border: 1.5px solid var(--encre); border-radius: var(--r); background: var(--papier); cursor: pointer; }
+    .demo-barre button[aria-pressed="true"] { background: var(--encre); color: var(--papier); }
+    .demo-barre button:focus-visible { outline: 3px solid var(--pigment-texte); outline-offset: 2px; }
+    main { padding: 1.5rem 16px 2rem; }
+    #journal { max-width: 72rem; margin: 0 auto 3rem; padding: 0 16px; font-size: .8rem; color: var(--encre-3); }
+  </style>
+</head>
+<body>
+  <div class="demo-barre">
+    <strong>ÉCLORE</strong>
+    <div class="groupe" role="group" aria-label="Cours">
+      <button type="button" data-cours="maths">Cours modèle (5e maths)</button>
+      <button type="button" data-cours="test">Banc d'essai (tous les blocs)</button>
+    </div>
+    <div class="groupe" role="group" aria-label="Thème">
+      <button type="button" data-theme-choix="jour">Jour</button>
+      <button type="button" data-theme-choix="nuit">Nuit</button>
+    </div>
+  </div>
+  <main id="scene"></main>
+  <p id="journal" aria-live="polite"></p>
+
+  <script type="module">
+    import { injecterDefs } from "../src/ui/defs.js";
+    import { rendreCours } from "../src/ui/cours.js";
+    import coursMaths from "../content/cours/5e/maths.js";
+    import moduleMaths from "../content/5e/maths.js";
+
+    const params = new URLSearchParams(location.search);
+    const theme = params.get("theme") === "nuit" ? "nuit" : "jour";
+    const choix = params.get("cours") === "test" ? "test" : "maths";
+    if (theme === "nuit") document.documentElement.dataset.theme = "nuit";
+    if (params.get("animations") === "0") document.documentElement.dataset.animations = "0";
+    injecterDefs();
+
+    // ——— Banc d'essai : un chapitre fictif qui utilise TOUS les types de blocs. ———
+    const schemaVolcan = `<svg viewBox="0 0 400 240">
+      <path class="aplat" d="M40 220 L170 70 Q200 52 230 70 L360 220 Z"/>
+      <path class="trait" d="M40 220 L170 70 Q200 52 230 70 L360 220"/>
+      <path class="aplat-fort" d="M196 220 L196 92 Q200 84 204 92 L204 220 Z" opacity=".85"/>
+      <ellipse class="aplat-papier trait-fin" cx="200" cy="222" rx="70" ry="14"/>
+      <path class="pointille" d="M200 60 Q186 40 200 24 Q214 10 204 -4"/>
+      <line class="trait-fin" x1="300" y1="150" x2="212" y2="150" marker-end="url(#fl)"/>
+      <text class="texte" x="306" y="154">cheminée</text>
+      <line class="trait-fin" x1="96" y1="200" x2="136" y2="214" marker-end="url(#fl-p)"/>
+      <text class="texte-petit" x="16" y="196">chambre magmatique</text>
+      <text class="texte-main" x="226" y="40">panache de cendres</text>
+      <text class="texte-pigment" x="150" y="62" text-anchor="end">cratère</text>
+      <script>alert("non")<\/script>
+      <image href="https://exemple.invalid/x.png" x="0" y="0" width="10" height="10"/>
+      <a href="javascript:alert(1)"><circle class="aplat-fort" cx="380" cy="20" r="6" onclick="alert(2)"/></a>
+      <foreignObject x="0" y="0" width="50" height="50"><div>piège</div></foreignObject>
+    </svg>`;
+
+    const coursTest = {
+      accroche: "Comment faire tenir 3 millions d'années sur une seule ligne, l'air que tu respires dans un cercle et le trajet d'une goutte d'eau dans une boucle ? Ce chapitre d'essai rassemble **tous** les outils du cours illustré.",
+      objectifs: ["Lire une frise chronologique à l'échelle, avec ses ruptures", "Interpréter un diagramme en barres, une courbe et un diagramme circulaire", "Repérer un nombre sur une droite graduée et un lieu sur une carte"],
+      sections: [
+        { titre: "Le temps long de l'histoire", blocs: [
+          { t: "texte", md: "Pour ranger les événements, les historiens utilisent une **frise chronologique**. Plus deux événements sont éloignés dans le temps, plus ils sont éloignés sur la frise.\n\nQuand un écart est immense, on « coupe » la frise : c'est une ==rupture d'échelle==." },
+          { t: "frise", titre: "De Lucy à la Révolution française", evenements: [
+            { date: -3200000, label: "Lucy, australopithèque", detail: "Ses ossements ont été découverts en 1974 en Éthiopie. Elle a vécu il y a environ 3,2 millions d'années." },
+            { date: -3300, label: "Invention de l'écriture", detail: "En Mésopotamie, les scribes gravent des signes dans l'argile : c'est l'écriture cunéiforme. On passe de la Préhistoire à l'Antiquité." },
+            { date: -753, label: "Fondation de Rome", detail: "Date légendaire : selon la tradition, Romulus fonde Rome sur le mont Palatin." },
+            { date: 476, label: "Fin de l'Empire romain d'Occident", detail: "Le dernier empereur, Romulus Augustule, est déposé. Les historiens y placent le début du Moyen Âge." },
+            { date: 1492, label: "Colomb atteint l'Amérique", detail: "Le 12 octobre 1492, Christophe Colomb débarque aux Bahamas." },
+            { date: 1789, label: "Révolution française", detail: "Le 14 juillet 1789, les Parisiens prennent la Bastille." },
+          ] },
+          { t: "definition", terme: "Chronologie", md: "La science qui **date** les événements et les range dans l'ordre où ils se sont produits." },
+          { t: "citation", texte: "L'histoire est le témoin des temps, la lumière de la vérité, la vie de la mémoire.", auteur: "Cicéron", source: "De l'orateur" },
+          { t: "savais-tu", md: "Il n'y a **pas d'année zéro** : on passe directement de l'an 1 av. J.-C. à l'an 1 apr. J.-C. Le calendrier a été fixé ainsi au VIe siècle par le moine Denys le Petit." },
+        ] },
+        { titre: "Des chiffres qui parlent", blocs: [
+          { t: "graphique", type: "barres", titre: "Moyen de transport pour venir au collège (classe fictive)", unite: "élèves", donnees: [{ label: "À pied", valeur: 9 }, { label: "Vélo", valeur: 4 }, { label: "Bus scolaire", valeur: 11 }, { label: "Voiture", valeur: 5 }, { label: "Trottinette", valeur: 2 }] },
+          { t: "graphique", type: "courbe", titre: "Température moyenne à Paris au fil de l'année", unite: "°C", donnees: [{ label: "J", valeur: 5 }, { label: "F", valeur: 6 }, { label: "M", valeur: 9 }, { label: "A", valeur: 12 }, { label: "M", valeur: 15 }, { label: "J", valeur: 18 }, { label: "J", valeur: 21 }, { label: "A", valeur: 20 }, { label: "S", valeur: 17 }, { label: "O", valeur: 13 }, { label: "N", valeur: 8 }, { label: "D", valeur: 6 }] },
+          { t: "graphique", type: "secteurs", titre: "Composition de l'air sec", unite: "%", donnees: [{ label: "Diazote", valeur: 78 }, { label: "Dioxygène", valeur: 21 }, { label: "Autres gaz (argon, dioxyde de carbone…)", valeur: 1 }] },
+          { t: "tableau", titre: "Lire un graphique : la méthode", entetes: ["Étape", "Question à se poser", "Exemple"], lignes: [["Titre", "De quoi parle-t-on ?", "La température à Paris"], ["Axes", "Que mesure chaque axe ? Quelle **unité** ?", "Les mois ; des degrés Celsius"], ["Lecture", "Quelle est la valeur la plus haute ?", "21 °C en juillet"]] },
+          { t: "verifie", q: "D'après la courbe, quel est le mois le plus chaud à Paris ?", choix: ["Juin", "Juillet", "Septembre"], bonne: 1, explication: "Le point le plus haut de la courbe est en **juillet**, avec 21 °C en moyenne." },
+        ] },
+        { titre: "Repérer et situer", blocs: [
+          { t: "droite", titre: "Des nombres relatifs sur une droite", min: -5, max: 5, pas: 1, points: [{ x: -3, label: "A" }, { x: -2.5, label: "B" }, { x: 0, label: "O" }, { x: 1.5, label: "C" }, { x: 4, label: "D" }] },
+          { t: "droite", titre: "Des fractions sur une droite (graduée en tiers)", min: -1, max: 2, pas: 1 / 3, fractions: 3, points: [{ x: -2 / 3, label: "E" }, { x: 1 / 3, label: "F" }, { x: 5 / 3, label: "G" }] },
+          { t: "propriete", titre: "Comparer deux nombres relatifs", md: "Sur une droite graduée orientée vers la droite, le plus **grand** des deux nombres est celui qui est le plus **à droite**.\n\nAinsi −3 < −2,5 < 1,5." },
+          { t: "carte", fond: "monde", titre: "Les grandes cités de la Méditerranée antique", cadre: [-10, 28, 40, 48], reperes: [{ nom: "Rome", lat: 41.9, lon: 12.5 }, { nom: "Athènes", lat: 37.98, lon: 23.73 }, { nom: "Carthage", lat: 36.85, lon: 10.32 }, { nom: "Alexandrie", lat: 31.2, lon: 29.92 }], traits: [{ de: [41.9, 12.5], a: [36.85, 10.32], label: "guerres puniques" }], legende: "Quatre cités reliées par la mer : la Méditerranée est un carrefour." },
+          { t: "liste", titre: "Pour se repérer sur une carte", ordonnee: true, items: ["Lire le **titre**", "Repérer l'**orientation** (le nord)", "Utiliser l'**échelle** et la **légende**"] },
+          { t: "liste", items: ["Un **repère** est un lieu précis (une ville)", "Un **trait** relie deux lieux (une route, un voyage)"] },
+        ] },
+        { titre: "Les cycles et les processus", blocs: [
+          { t: "etapes", cycle: true, titre: "Le cycle de l'eau", items: [
+            { titre: "Évaporation", md: "Chauffée par le Soleil, l'eau des océans devient **vapeur d'eau**." },
+            { titre: "Condensation", md: "En altitude, il fait plus froid : la vapeur forme de fines gouttelettes, les **nuages**." },
+            { titre: "Précipitations", md: "Les gouttelettes grossissent et tombent : **pluie**, neige ou grêle." },
+            { titre: "Ruissellement et infiltration", md: "L'eau rejoint les rivières ou s'infiltre dans le sol, puis retourne à la mer." },
+          ] },
+          { t: "etapes", titre: "Faire une expérience en sciences", items: [{ titre: "Question", md: "Je me pose une question précise." }, { titre: "Hypothèse", md: "J'imagine une réponse possible." }, { titre: "Expérience", md: "Je teste en ne changeant **qu'un seul** facteur à la fois." }, { titre: "Conclusion", md: "Je valide ou je rejette mon hypothèse." }] },
+          { t: "schema", titre: "Coupe simplifiée d'un volcan", legende: "Le magma monte de la chambre magmatique par la cheminée jusqu'au cratère.", svg: schemaVolcan },
+          { t: "schema", titre: "Les couleurs de l'arc-en-ciel", legende: "La lumière blanche décomposée par un prisme donne un spectre continu, du rouge au violet.", svg: `<svg viewBox="0 0 400 230"><rect class="c-rouge trait" x="30" y="40" width="44" height="90" rx="4"/><text class="texte-petit" x="52" y="150" text-anchor="middle">rouge</text><rect class="c-orange trait" x="80" y="40" width="44" height="90" rx="4"/><text class="texte-petit" x="102" y="150" text-anchor="middle">orange</text><rect class="c-jaune trait" x="130" y="40" width="44" height="90" rx="4"/><text class="texte-petit" x="152" y="150" text-anchor="middle">jaune</text><rect class="c-vert trait" x="180" y="40" width="44" height="90" rx="4"/><text class="texte-petit" x="202" y="150" text-anchor="middle">vert</text><rect class="c-bleu trait" x="230" y="40" width="44" height="90" rx="4"/><text class="texte-petit" x="252" y="150" text-anchor="middle">bleu</text><rect class="c-indigo trait" x="280" y="40" width="44" height="90" rx="4"/><text class="texte-petit" x="302" y="150" text-anchor="middle">indigo</text><rect class="c-violet trait" x="330" y="40" width="44" height="90" rx="4"/><text class="texte-petit" x="352" y="150" text-anchor="middle">violet</text><circle class="c-noir trait" cx="120" cy="200" r="16"/><circle class="c-blanc trait" cx="170" cy="200" r="16"/><circle class="c-gris trait" cx="220" cy="200" r="16"/><circle class="c-rose trait" cx="270" cy="200" r="16"/><circle class="c-marron trait" cx="320" cy="200" r="16"/><text class="texte-main" x="200" y="26" text-anchor="middle">du rouge au violet</text></svg>` },
+          { t: "exemple", titre: "Lire une durée sur la frise", md: "De la fondation de Rome (753 av. J.-C.) à la fin de l'Empire d'Occident (476), il s'écoule **1 228 ans** : 753 + 476 − 1, car il n'y a pas d'année zéro." },
+          { t: "attention", md: "Avant J.-C., les années **diminuent** quand on avance dans le temps : 753 av. J.-C. vient *avant* 500 av. J.-C." },
+          { t: "astuce", md: "Pour retenir le cycle de l'eau, pense à « **É**té, **C**iel, **P**luie, **R**ivière » : Évaporation, Condensation, Précipitations, Ruissellement." },
+          { t: "verifie", q: "Quelle étape du cycle de l'eau forme les nuages ?", choix: ["L'évaporation", "La condensation", "L'infiltration", "Le ruissellement"], bonne: 1, explication: "C'est la **condensation** : en se refroidissant, la vapeur d'eau forme des gouttelettes." },
+        ] },
+      ],
+      bilan: "Une frise range le temps, un graphique révèle les chiffres, une carte situe les lieux et un cycle n'a ni début ni fin.",
+    };
+    const chapitreTest = {
+      id: "5e-histoire-99-banc-d-essai", titre: "Banc d'essai : tous les blocs du cours", theme: "Démonstration",
+      retenir: ["Sur une frise, la distance représente la **durée**.", "Il n'y a **pas d'année zéro**.", "Un graphique se lit toujours avec son **titre**, ses **axes** et son **unité**."],
+    };
+
+    const chapMaths = moduleMaths.chapitres.find((c) => c.id === "5e-maths-01-priorites-operatoires");
+    const scene = document.getElementById("scene");
+    const journal = document.getElementById("journal");
+    window.__journal = [];
+    const noter = (m) => { window.__journal.push(m); journal.textContent = `Journal : ${window.__journal.join(" · ")}`; };
+    const options = {
+      onVerifie: (juste, { essai }) => noter(`verifie ${juste ? "juste" : "faux"} (essai ${essai})`),
+      onSection: (i) => noter(`section ${i + 1} lue`),
+      onFin: () => noter("fin → entraînement"),
+    };
+    let el;
+    if (choix === "test") {
+      scene.style.setProperty("--pigment", "#a35d32");
+      el = rendreCours(coursTest, { chapitre: chapitreTest, ...options });
+    } else {
+      scene.style.setProperty("--pigment", "#3d5a99");
+      el = rendreCours(coursMaths.chapitres["5e-maths-01-priorites-operatoires"], { chapitre: { ...chapMaths, matiere: moduleMaths.matiere }, ...options });
+    }
+    scene.append(el);
+
+    for (const b of document.querySelectorAll("[data-cours]")) {
+      b.setAttribute("aria-pressed", String(b.dataset.cours === choix));
+      b.addEventListener("click", () => { params.set("cours", b.dataset.cours); location.search = params; });
+    }
+    for (const b of document.querySelectorAll("[data-theme-choix]")) {
+      b.setAttribute("aria-pressed", String(b.dataset.themeChoix === theme));
+      b.addEventListener("click", () => { params.set("theme", b.dataset.themeChoix); location.search = params; });
+    }
+  </script>
+</body>
+</html>

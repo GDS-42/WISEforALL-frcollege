@@ -1,0 +1,15 @@
+{
+  "name": "eclore-cartes-build",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Génération reproductible des fonds de carte d'ÉCLORE (assets/cartes/*.json). Dépendances de build uniquement.",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "devDependencies": {
+    "topojson-client": "3.1.0",
+    "topojson-server": "3.0.1",
+    "topojson-simplify": "3.0.3"
+  }
+}
