@@ -2,10 +2,16 @@
 // Balisage de lecture à voix haute [[…]] des modules de langue (docs/LANGUES.md).
 //
 //   node tools/annotations.mjs extraire <fichier> [--chapitre N]   champs lus à voix haute, en JSON { chemin: texte }
-//   node tools/annotations.mjs appliquer <fichier> <lot.json>       réécrit ces champs (balises ajoutées ou retirées seulement)
+//   node tools/annotations.mjs appliquer <fichier> <lot.json>       pose les balises de ces champs (le texte lui-même ne change pas)
 //   node tools/annotations.mjs signaler <fichier> [--chapitre N]    passages probablement oubliés ou mal balisés
 //   node tools/annotations.mjs controler [ref]                      le contenu, balises retirées, est identique à <ref> (HEAD)
 //
+// Lot pour `appliquer` : { chemin: valeur }, la valeur étant au choix
+//   ["Hello", "Hi", "en:thirteen"]  la liste COMPLÈTE des passages à baliser dans ce champ, dans l'ordre de lecture
+//                                  (chacun cherché après le précédent, sur des limites de mots ; « xx: » = langue explicite) ;
+//   true                           tout le champ est dans la langue étudiée ;
+//   []                             retirer toutes les balises du champ ;
+//   "texte [[balisé]]"             le texte complet, balises comprises.
 // `appliquer` refuse toute modification qui change le texte affiché : seules les balises peuvent bouger.
 import { readFileSync, writeFileSync, mkdtempSync, rmSync } from "node:fs";
 import { resolve, relative, join } from "node:path";
@@ -83,6 +89,39 @@ async function extraire(f) {
 
 // ————————————————————————————— appliquer —————————————————————————————
 
+const lettreOuChiffre = (c) => c !== undefined && /[\p{L}\p{N}]/u.test(c);
+
+/** Occurrence de `cible` dans `base` à partir de `pos`, sans couper un mot. */
+function chercher(base, cible, pos) {
+  for (let i = base.indexOf(cible, pos); i >= 0; i = base.indexOf(cible, i + 1)) {
+    const avantOk = !lettreOuChiffre(cible[0]) || !lettreOuChiffre(base[i - 1]);
+    const apresOk = !lettreOuChiffre(cible[cible.length - 1]) || !lettreOuChiffre(base[i + cible.length]);
+    if (avantOk && apresOk) return i;
+  }
+  return -1;
+}
+
+/** Texte balisé à partir d'une valeur de lot (voir l'en-tête). */
+function texteBalise(ancien, valeur) {
+  const base = retirerBalises(ancien);
+  if (typeof valeur === "string") return valeur;
+  if (valeur === true) {
+    const debut = base.length - base.trimStart().length, fin = base.trimEnd().length;
+    return `${base.slice(0, debut)}[[${base.slice(debut, fin)}]]${base.slice(fin)}`;
+  }
+  if (!Array.isArray(valeur)) throw new Error("valeur attendue : liste de passages, true ou texte complet");
+  let out = "", pos = 0;
+  for (const s of valeur) {
+    if (typeof s !== "string" || !s.trim()) throw new Error(`passage vide ou invalide : ${JSON.stringify(s)}`);
+    const m = s.match(/^(fr|en|es|de|ar|zh):(.+)$/s), code = m ? `${m[1]}:` : "", cible = m ? m[2] : s;
+    const i = chercher(base, cible, pos);
+    if (i < 0) throw new Error(`passage « ${s} » introuvable${pos ? " après le passage précédent" : ""} (respecte l'ordre de lecture et le texte exact)`);
+    out += `${base.slice(pos, i)}[[${code}${cible}]]`;
+    pos = i + cible.length;
+  }
+  return out + base.slice(pos);
+}
+
 async function appliquer(f, fichierLot) {
   if (!fichierLot) sortir("usage : appliquer <fichier> <lot.json>");
   const lot = JSON.parse(readFileSync(resolve(fichierLot), "utf8"));
@@ -90,11 +129,12 @@ async function appliquer(f, fichierLot) {
   const places = localiser(src, mod), valeurs = new Map(chaines(mod));
   const erreurs = [], changements = [];
   let inchanges = 0;
-  for (const [chemin, nouveau] of Object.entries(lot)) {
+  for (const [chemin, valeur] of Object.entries(lot)) {
     if (!valeurs.has(chemin)) { erreurs.push(`${chemin} : chemin inconnu`); continue; }
     if (!champLu(chemin, cours)) { erreurs.push(`${chemin} : champ non lu à voix haute, on n'y balise rien`); continue; }
-    if (typeof nouveau !== "string") { erreurs.push(`${chemin} : la valeur doit être une chaîne`); continue; }
     const ancien = valeurs.get(chemin);
+    let nouveau;
+    try { nouveau = texteBalise(ancien, valeur); } catch (e) { erreurs.push(`${chemin} : ${e.message}\n      texte : ${JSON.stringify(retirerBalises(ancien))}`); continue; }
     if (retirerBalises(nouveau) !== retirerBalises(ancien)) {
       erreurs.push(`${chemin} : le texte a changé (seules les balises [[…]] peuvent être ajoutées ou retirées)\n      avant : ${JSON.stringify(retirerBalises(ancien))}\n      après : ${JSON.stringify(retirerBalises(nouveau))}`);
       continue;

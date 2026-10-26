@@ -62,9 +62,9 @@ jamais. Le moteur est `src/lecture.js`.
 - Les balises se combinent avec la mise en forme dans n'importe quel ordre : `**[[Hello]]**` ou `[[**Hello**]]`.
 - Pas d'espace juste après `[[` ni juste avant `]]`, pas de balise vide ni imbriquée.
 
-Outil : `node tools/annotations.mjs extraire|appliquer|signaler <fichier>` (lot JSON de textes balisés ; refuse
-toute modification du texte lui-même) et `node tools/annotations.mjs controler` (contenu identique au dernier
-commit, balises retirées).
+Outil : `node tools/annotations.mjs extraire|appliquer|signaler <fichier>` (lot JSON : pour chaque champ, la liste
+des passages à baliser dans l'ordre de lecture, ou `true` pour tout le champ ; refuse toute modification du texte
+lui-même) et `node tools/annotations.mjs controler` (contenu identique au dernier commit, balises retirées).
 
 ## Exigences de qualité (la demande insiste : « soit soigneux et vérifie »)
 - Exactitude linguistique absolue : orthographe, genres, déclinaisons, conjugaisons, harakat, tons, traits,
