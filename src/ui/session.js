@@ -67,7 +67,9 @@ function afficherItem(ctx) {
   const rattrapage = !!item._rattrapage;
   const statut = rattrapage ? "rattrapage" : etatItem?.s ? "révision" : "nouveau";
   const debut = Date.now();
-  let confiance = 2, indiceUtilise = false, repondu = false, valider = null, boutonValider = null;
+  // Avec la jauge, l'élève doit dire lui-même s'il devine, croit ou est sûr (rien de présélectionné).
+  const avecConfiance = item.type !== "flash" && e.prefs.confiance && ctx.type !== "epreuve";
+  let confiance = avecConfiance ? null : 2, indiceUtilise = false, repondu = false, valider = null, boutonValider = null, ligneConfiance = null;
   zone.style.setProperty("--pigment", info.couleur);
   poser(zone, barreProgression(ctx, info));
   if (ctx.type === "defi") {
@@ -86,12 +88,17 @@ function afficherItem(ctx) {
   const corps = h("div", { class: "corps-question" });
   poser(carte, corps);
 
-  const majValider = () => { if (boutonValider) boutonValider.disabled = !rendu.pret(); };
+  const majValider = () => {
+    if (!boutonValider) return; // pas encore construit (un rendu peut appeler onPret pendant sa création) ou carte mémoire
+    const pret = rendu.pret(), manqueConfiance = confiance === null;
+    ligneConfiance?.classList.toggle("a-choisir", pret && manqueConfiance);
+    boutonValider.disabled = !pret || manqueConfiance;
+    boutonValider.title = pret && manqueConfiance ? "Choisis d'abord : je devine, je crois ou j'en suis sûr" : "";
+  };
   const rendu = RENDUS[item.type](item, corps, { onPret: majValider, onValiderAuto: () => valider() });
 
-  let ligneConfiance = null;
-  if (item.type !== "flash" && e.prefs.confiance && ctx.type !== "epreuve") {
-    const btns = [[1, "je devine"], [2, "je crois"], [3, "j'en suis sûr"]].map(([v, lib]) => h("button", { type: "button", "aria-pressed": v === confiance ? "true" : "false", onclick: (ev) => { confiance = v; btns.forEach(b => b.setAttribute("aria-pressed", b === ev.currentTarget ? "true" : "false")); } }, lib));
+  if (avecConfiance) {
+    const btns = [[1, "je devine"], [2, "je crois"], [3, "j'en suis sûr"]].map(([v, lib]) => h("button", { type: "button", "aria-pressed": "false", onclick: (ev) => { confiance = v; btns.forEach(b => b.setAttribute("aria-pressed", b === ev.currentTarget ? "true" : "false")); majValider(); } }, lib));
     ligneConfiance = h("div", { class: "confiance", role: "group", "aria-label": "Ta confiance" }, h("span", { class: "main-ecrite" }, "Je suis…"), btns);
   }
   boutonValider = item.type === "flash" ? null : h("button", { class: "btn encre", disabled: true, onclick: () => valider() }, icone("valider"), "Valider");
@@ -101,7 +108,7 @@ function afficherItem(ctx) {
   poser(zone, carte);
 
   valider = function () {
-    if (repondu) return;
+    if (repondu || confiance === null) return;
     const reponse = rendu.lire();
     if (reponse === null || reponse === undefined) return;
     repondu = true;
@@ -165,6 +172,7 @@ function afficherItem(ctx) {
     const tag = document.activeElement?.tagName;
     if (ev.key === "Enter" && !ev.shiftKey && tag !== "BUTTON" && tag !== "TEXTAREA" && tag !== "A") {
       if (repondu) { ev.preventDefault(); document.getElementById("continuer")?.click(); }
+      else if (rendu.pret() && confiance === null) { ev.preventDefault(); majValider(); ligneConfiance?.querySelector("button")?.focus(); }
       else if (rendu.pret()) { ev.preventDefault(); valider(); }
     }
     if (!repondu && /^[1-9]$/.test(ev.key) && tag !== "INPUT") rendu.touche?.(Number(ev.key) - 1);

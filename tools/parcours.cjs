@@ -20,6 +20,7 @@ async function repondre(page, i) {
     await page.mouse.move(b.x + 30, b.y + b.height / 2); await page.mouse.down();
     await page.mouse.move(b.x + 30, b.y + b.height * 2.6, { steps: 8 }); await page.mouse.up();
   }
+  if (type !== "flash" && await page.$(".confiance button")) await page.click(".confiance button >> nth=1"); // rien n'est présélectionné
   if (type !== "flash") await page.click('button:has-text("Valider")');
   await page.waitForSelector(".retour");
   if (i === 1) { await page.waitForTimeout(400); await page.screenshot({ path: S + "07-correction.png", fullPage: true }); }

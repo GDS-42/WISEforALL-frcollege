@@ -1,6 +1,11 @@
 /* ÉCLORE — la séance d'exercices. */
 body[data-ecran="session"] { padding-left: 0; padding-bottom: 2rem; }
-.seance { max-width: 760px; margin: 0 auto; }
+.seance { max-width: 47.5rem; margin: 0 auto; }
+/* Sur grand écran, la séance grandit avec la fenêtre, comme sur un téléphone : tout y est en rem,
+   on agrandit donc la racine (sans zoom CSS, pour garder justes le glisser-déposer et les traits). */
+@media (min-width: 1100px) and (min-height: 650px) {
+  html:has(body[data-ecran="session"]) { font-size: calc(clamp(16px, min(1.3vw, 2.5vh), 26px) * var(--taille)); }
+}
 .seance-haut { display: flex; align-items: center; gap: .8rem; margin-bottom: 1.1rem; position: sticky; top: 0; z-index: 5; padding: .5rem 0; background: color-mix(in oklab, var(--papier) 92%, transparent); }
 .tige { flex: 1; display: flex; align-items: center; gap: 0; height: 26px; position: relative; }
 .tige::before { content: ""; position: absolute; left: 6px; right: 6px; top: 50%; height: 2.5px; background: var(--pigment); opacity: .45; border-radius: 2px; transform: translateY(-50%); }
@@ -105,6 +110,10 @@ body[data-ecran="session"] { padding-left: 0; padding-bottom: 2rem; }
 .confiance .main-ecrite { font-size: 1.25rem; color: var(--encre-2); margin-right: .2rem; }
 .confiance button { padding: .3rem .7rem; min-height: 36px; border: 1.5px solid var(--trait-fort); border-radius: 999px; background: transparent; font-size: .86rem; color: var(--encre-2); }
 .confiance button[aria-pressed="true"] { border-color: var(--encre); background: var(--encre); color: var(--papier); }
+/* Réponse prête, confiance pas encore choisie : on le rappelle doucement. */
+.confiance.a-choisir { margin: -.3rem -.5rem; padding: .3rem .5rem; border-radius: var(--r); outline: 2px dashed color-mix(in oklab, var(--pigment) 70%, transparent); outline-offset: 2px; animation: rappel-confiance calc(1.6s * var(--vitesse)) ease-in-out 2; }
+.confiance.a-choisir button { border-color: var(--encre-2); color: var(--encre); }
+@keyframes rappel-confiance { 50% { background: color-mix(in oklab, var(--pigment) 12%, transparent); } }
 .indice { display: flex; gap: .5rem; align-items: flex-start; padding: .6rem .8rem; border: 1.5px dashed var(--attention); border-radius: var(--r); background: color-mix(in oklab, var(--attention) 12%, var(--papier)); font-size: .93rem; max-width: 420px; }
 
 /* Le tampon : verdict posé comme un coup de tampon encreur. */

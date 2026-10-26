@@ -110,7 +110,7 @@ img, svg { max-width: 100%; }
 
 /* ---------- Coquille ---------- */
 #entete { position: sticky; top: 0; z-index: 30; background: color-mix(in oklab, var(--papier) 88%, transparent); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); border-bottom: 1.5px solid var(--encre); }
-.entete-int { max-width: 1120px; margin: 0 auto; padding: .55rem 1rem; display: flex; align-items: center; gap: 1rem; }
+.entete-int { max-width: 70rem; margin: 0 auto; padding: .55rem 1rem; display: flex; align-items: center; gap: 1rem; }
 .logo { display: flex; align-items: center; gap: .55rem; text-decoration: none; color: var(--encre); }
 .logo .mot { font-family: var(--f-titre); font-size: 1.35rem; letter-spacing: .16em; }
 .logo .sous { font-family: var(--f-main); font-size: 1.05rem; color: var(--encre-2); margin-left: .2rem; letter-spacing: 0; }
@@ -123,7 +123,7 @@ img, svg { max-width: 100%; }
 .compteur.niveau .jauge-mini > i { display: block; height: 100%; background: var(--or); }
 body { --cours-decalage: 64px; }
 body[data-ecran="session"] { --cours-decalage: 0px; }
-main { max-width: 1120px; margin: 0 auto; padding: 1.4rem 1rem 2.5rem; }
+main { max-width: 70rem; margin: 0 auto; padding: 1.4rem 1rem 2.5rem; }
 #navigation { position: fixed; left: 0; right: 0; bottom: 0; z-index: 30; display: flex; justify-content: center; gap: 2px; padding: .35rem .4rem calc(.35rem + env(safe-area-inset-bottom)); background: var(--papier-2); border-top: 1.5px solid var(--encre); }
 #navigation a { flex: 1 1 0; max-width: 128px; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: .4rem .2rem .3rem; border-radius: var(--r); text-decoration: none; color: var(--encre-2); font-size: .72rem; font-weight: 500; position: relative; }
 #navigation a .icone { width: 22px; height: 22px; }
