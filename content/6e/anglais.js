@@ -789,7 +789,7 @@ export default {
         "Le **h** se prononce toujours (expiré) : **hello, house, happy, have**. Ne pas le prononcer change le mot : **hair** (cheveux) / **air** (air). Exceptions : **hour, honest**.",
         "La terminaison **-ed** du prétérit a trois sons : /t/ après un son sourd (**walked, looked**), /d/ après un son sonore (**played, lived**), /ɪd/ après t ou d (**wanted, visited**).",
         "Le **-ing** se prononce /ɪŋ/, avec un son nasal, sans « g » dur. Le **r** anglais ne roule pas et ne gratte pas : la langue ne touche rien.",
-        "Chaque mot long a une **syllabe accentuée** plus forte et plus longue : **BIRTHday, SEVenteen** ou **sevenTEEN, TEAcher, faVOUrite**. Les voyelles non accentuées s'affaiblissent (schwa /ə/).",
+        "Chaque mot long a une **syllabe accentuée** plus forte et plus longue : **BIRTHday, sevenTEEN, TEAcher, FAvourite**. Les voyelles non accentuées s'affaiblissent (schwa /ə/).",
         "Intonation : elle **monte** dans les questions fermées (yes/no) : *Are you ready?* ↗ et **descend** dans les questions en wh- : *Where do you live?* ↘",
         "Faux amis : **a library** = une bibliothèque (pas une librairie), **a journey** = un voyage, **actually** = en fait, **a coin** = une pièce de monnaie, **to attend** = assister à, **sensible** = raisonnable, **a chair** = une chaise.",
         "Culture : **Paddington**, l'ours péruvien de Londres amateur de marmelade ; **Harry Potter**, le sorcier de Hogwarts ; **Peter Pan**, l'enfant qui ne grandit pas, à Neverland ; **Alice in Wonderland** ; la comptine **Humpty Dumpty** et la chanson **Happy Birthday**.",

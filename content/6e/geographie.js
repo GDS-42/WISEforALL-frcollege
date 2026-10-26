@@ -544,7 +544,7 @@ export default {
         "Les humains s'installent là où la vie est plus facile : climats tempérés ou tropicaux humides, plaines, vallées des fleuves, littoraux. L'histoire compte aussi : les foyers asiatiques cultivent le riz depuis des millénaires.",
         "L'**Inde** est devenue le pays le plus peuplé du monde (plus de 1,4 milliard), devant la Chine. La croissance est aujourd'hui la plus rapide en **Afrique**.",
       ],
-      exemple: "Le Bangladesh est à peine plus petit que la Grèce, mais il compte plus de 170 millions d'habitants : sa densité dépasse 1 000 hab/km². Le delta du Gange, fertile et arrosé, nourrit des rizières depuis des siècles.",
+      exemple: "Le Bangladesh est à peine plus grand que la Grèce (environ 148 000 km²), mais il compte plus de 170 millions d'habitants : sa densité dépasse 1 000 hab/km². Le delta du Gange, fertile et arrosé, nourrit des rizières depuis des siècles.",
       items: [
         { id: "6e-geographie-08-population-mondiale-q01", type: "num", competence: "6e-geographie-08-population-mondiale-c4", difficulte: 1,
           q: "Combien d'humains vivent sur Terre aujourd'hui ? Réponds en milliards.", reponse: 8, tolerance: 0.4, unite: "milliards",

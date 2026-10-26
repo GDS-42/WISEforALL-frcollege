@@ -57,7 +57,7 @@ Mise en forme du texte (`md`) : `**gras**`, `*italique*`, `==surligné==`, `\n` 
 | `frise` | `titre`?, `evenements`: `[{ date, label, detail? }]` | Frise chronologique interactive. `date` = année (nombre, négatif avant J.-C.), en ordre croissant. 3 à 10 événements. |
 | `etapes` | `titre`?, `items`: `[{ titre, md }]`, `cycle`? | Processus en étapes ; `cycle: true` pour un cycle (eau, vie…). 3 à 7 étapes. |
 | `graphique` | `type`: `"barres"`/`"courbe"`/`"secteurs"`, `titre`, `unite`?, `donnees`: `[{ label, valeur }]` | Diagramme dessiné automatiquement. 2 à 12 données. |
-| `droite` | `titre`?, `min`, `max`, `pas`, `points`: `[{ x, label }]` | Droite graduée (relatifs, fractions, repérage). |
+| `droite` | `titre`?, `min`, `max`, `pas`, `points`: `[{ x, label }]`, `fractions`? (dénominateur) | Droite graduée (relatifs, fractions, repérage). Avec `fractions: 3`, les graduations s'écrivent en tiers. |
 | `carte` | `fond`: `"monde"`/`"france"`, `titre`, `cadre`? `[lonMin, latMin, lonMax, latMax]`, `zones`? , `reperes`? `[{ nom, lat, lon }]`, `traits`? `[{ de:[lat,lon], a:[lat,lon], label? }]`, `legende`? | Carte dessinée. `zones` : codes pays ISO 3166-1 alpha-2 (`"FR"`, `"EG"`) pour `monde` ; pour `france`, identifiants de région (voir plus bas). `cadre` zoome (ex. Méditerranée `[-10, 28, 40, 48]`). Repères en coordonnées décimales exactes. |
 | `schema` | `titre`, `svg`, `legende`? | Dessin sur mesure en SVG (voir règles). |
 | `verifie` | `q`, `choix` (2 à 4), `bonne` (index), `explication` | Mini-question interactive au fil du cours (« Vérifie que tu as compris »). |
@@ -78,6 +78,7 @@ Pour l'histoire ancienne, préfère `reperes` (villes, sites) et `traits` (route
   (pigment), `class="aplat-papier"`, `class="texte"` (texte encre 13 px), `class="texte-petit"`
   (11 px), `class="texte-main"` (manuscrit 16 px), `class="texte-pigment"`.
   Ou `fill="var(--pigment)"`, `stroke="var(--encre)"`.
+- Vraies couleurs, quand la couleur est le sujet (cercle chromatique, drapeaux, spectre) : classes de remplissage `c-rouge`, `c-orange`, `c-jaune`, `c-vert`, `c-bleu`, `c-indigo`, `c-violet`, `c-rose`, `c-marron`, `c-noir`, `c-blanc`, `c-gris`.
 - Flèches : `marker-end="url(#fl)"` (ou `url(#fl-p)` en pigment).
 - Textes lisibles : labels courts, jamais de chevauchement, `text-anchor="middle"` pour centrer.
 - Simple et juste : un schéma clair vaut mieux qu'un dessin chargé. Moins de 6 000 caractères.
