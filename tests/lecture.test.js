@@ -37,6 +37,8 @@ test("ponctuation rattachée, segments voisins fusionnés, blancs marqués d'une
   assert.deepEqual(langues("[[My ___ is Emma.]]", "anglais"), ["en-GB|My … is Emma."]);
   assert.deepEqual(langues("✔ [[spielen → gespielt]] ; [[he / she / it is]] ; 3/4", "allemand"),
     ["de-DE|spielen, gespielt ; he, she, it is", "fr-FR|; 3/4"]);
+  assert.deepEqual(langues("Les verbes en [[-ar]], le préfixe [[ge-]] et [[-ing]] ; a-t-il vu « [[well-known]] » ?", "anglais"),
+    ["fr-FR|Les verbes en", "en-GB|ar", "fr-FR|, le préfixe", "en-GB|ge", "fr-FR|et", "en-GB|ing", "fr-FR|; a-t-il vu «", "en-GB|well-known » ?"]);
   assert.deepEqual(langues("« [[Nice to meet you]] » veut dire « Ravi de te rencontrer ».", "anglais"),
     ["en-GB|Nice to meet you", "fr-FR|» veut dire « Ravi de te rencontrer »."]);
   assert.deepEqual(segments("", "anglais"), []);

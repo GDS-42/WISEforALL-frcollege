@@ -22,10 +22,12 @@ export function retirerBalises(t) {
   return String(t ?? "").replace(RE_MARQUES, "");
 }
 
-/** Texte prononcé : sans mise en forme ; blancs « ___ », flèches et « / » entre deux formes deviennent une pause, ✔ ✘ se taisent. */
+/** Texte prononcé : sans mise en forme ; blancs « ___ », flèches et « / » entre deux formes deviennent une pause,
+ *  ✔ ✘ et le tiret d'une terminaison ou d'un préfixe (-ing, ge-) se taisent. */
 function nettoyer(t) {
   return t.replace(/\*+|==/g, "").replace(/_{3,}/g, " … ")
     .replace(/\s*[→⇒←↔⟶]\s*/g, ", ").replace(/\s+\/\s+/g, ", ").replace(/[✔✓✘✗]\uFE0F?/g, "")
+    .replace(/(^|[\s(«"“,])-(?=\p{L})/gu, "$1").replace(/(\p{L})-(?=[\s,.;:)»"”]|$)/gu, "$1")
     .replace(/\s+/g, " ");
 }
 
