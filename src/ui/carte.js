@@ -9,6 +9,8 @@
 //   - `cadre` (et fond France) : équirectangulaire corrigée par le cosinus de la latitude centrale.
 // Styles : src/styles/carte.css (jetons de la charte « Herbier », aucune couleur codée en dur).
 
+import { retirerBalises } from "../lecture.js";
+
 const NS = "http://www.w3.org/2000/svg";
 const L = 800; // largeur du viewBox (unités utilisateur)
 const CADRE_FRANCE = [-5.4, 41.2, 9.9, 51.3];
@@ -300,7 +302,7 @@ function libelleLieu(lat, lon, reperes) {
 
 function petitMd(texte) {
   const span = document.createElement("span");
-  const morceaux = String(texte).split(/(\*\*[^*]+\*\*|\*[^*]+\*)/);
+  const morceaux = retirerBalises(texte).split(/(\*\*[^*]+\*\*|\*[^*]+\*)/);
   for (const m of morceaux) {
     if (!m) continue;
     if (/^\*\*.+\*\*$/.test(m)) { const b = document.createElement("strong"); b.textContent = m.slice(2, -2); span.append(b); }
@@ -320,7 +322,7 @@ function petitMd(texte) {
 export async function rendreCarte(bloc = {}) {
   const id = `carte-eclore-${++compteur}`;
   const fond = bloc.fond === "france" ? "france" : "monde";
-  const titre = String(bloc.titre || (fond === "france" ? "Carte de France" : "Carte du monde"));
+  const titre = retirerBalises(bloc.titre || (fond === "france" ? "Carte de France" : "Carte du monde"));
   const reperes = (Array.isArray(bloc.reperes) ? bloc.reperes : []).filter((r) => r && Number.isFinite(r.lat) && Number.isFinite(r.lon) && r.nom);
   const point = (p) => Array.isArray(p) && p.length >= 2 && Number.isFinite(p[0]) && Number.isFinite(p[1]);
   const traits = (Array.isArray(bloc.traits) ? bloc.traits : []).filter((t) => t && point(t.de) && point(t.a));
