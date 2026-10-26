@@ -212,6 +212,11 @@ export const MODULES = [
   },
   {
     "niveau": "3e",
+    "matiere": "eps",
+    "path": "./3e/eps.js"
+  },
+  {
+    "niveau": "3e",
     "matiere": "espagnol",
     "path": "./3e/espagnol.js"
   },
