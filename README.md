@@ -60,7 +60,12 @@ Le format est documenté dans `src/sauvegarde.js` (les anciens fichiers restent 
 | Niveau | Matières |
 |---|---|
 | 6e | Français, Mathématiques, Histoire, Géographie, EMC, SVT, Physique-Chimie, Technologie, Anglais, Arts plastiques, Éducation musicale, EPS |
-| 5e, 4e, 3e | les mêmes + Espagnol (LV2) |
+| 5e, 4e, 3e | les mêmes + une deuxième langue au choix : Espagnol, Allemand, Arabe ou Chinois (LV2) |
+
+Chaque profil suit une seule LV2 (choisie à la création du carnet, modifiable dans les réglages).
+L'arabe s'affiche de droite à gauche avec une police dédiée ; le chinois accepte caractères ou pinyin
+(avec ou sans tons) ; l'allemand accepte « ae/oe/ue/ss » pour les claviers sans umlaut.
+Cahier des charges des langues : [docs/LANGUES.md](docs/LANGUES.md).
 
 Chaque module (niveau × matière) suit les thèmes officiels du programme : chapitres avec fiche
 « Je retiens », exemple travaillé, compétences évaluables rattachées aux domaines du socle commun,
