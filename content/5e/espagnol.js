@@ -103,7 +103,7 @@ export default {
           explication: "*Treinta* = 30 et *siete* = 7 : 30 + 7 = 37. À partir de 31, dizaine et unité sont reliées par *y*." },
         { id: "5e-espagnol-02-nombres-dates-heure-q03", type: "qcm", competence: "5e-espagnol-02-nombres-dates-heure-c1", difficulte: 2,
           q: "Comment écrit-on 16 ?", choix: ["dieciséis", "diez y seis", "dieciseis", "seisdiez"], bonne: 0,
-          explication: "De 16 à 29, les nombres s'écrivent en un seul mot : *dieciséis, diecisiete, veintidós*… *Dieciséis* porte un accent sur le é. *Diez y seis* est une forme ancienne qui ne s'utilise plus." },
+          explication: "De 16 à 29, les nombres s'écrivent en un seul mot : *dieciséis, diecisiete, veintidós*… *Dieciséis* porte un accent sur le é. *Diez y seis* est une forme ancienne, beaucoup moins courante aujourd'hui." },
         { id: "5e-espagnol-02-nombres-dates-heure-q04", type: "trous", competence: "5e-espagnol-02-nombres-dates-heure-c1", difficulte: 2, strict: true,
           texte: "45 = cuarenta y ___ ; 100 = ___.", reponses: [["cinco"], ["cien"]],
           explication: "*Cuarenta y cinco* : la dizaine, *y*, l'unité. 100 tout rond se dit **cien** (on dira *ciento* seulement devant un autre nombre : *ciento dos*)." },
@@ -628,7 +628,7 @@ export default {
         "Amérique hispanophone : **México** (Ciudad de México), **Argentina** (Buenos Aires), **Colombia** (Bogotá), **Perú** (Lima), **Chile** (Santiago), **Cuba** (La Habana), **Venezuela** (Caracas).",
         "Fêtes : **Navidad** (25 décembre), **Nochevieja** (31 décembre, les douze raisins), **Reyes Magos** (6 janvier, les cadeaux), **Semana Santa**, **San Fermín** (Pamplona, juillet), **Día de Muertos** (Mexique, 1er et 2 novembre).",
         "Artistes : **Picasso** (*Guernica*), **Dalí** (surréalisme, montres molles), **Gaudí** (Sagrada Familia, Parc Güell), **Frida Kahlo** (peintre mexicaine, autoportraits), **Velázquez** (*Las Meninas*).",
-        "Le pluriel « Espagnols et Latino-Américains » : la langue est la même, avec des accents et des mots différents (*zumo / jugo*, *coche / carro*).",
+        "Espagnols et Latino-Américains parlent la même langue, avec des accents et des mots différents (*zumo / jugo*, *coche / carro*).",
       ],
       exemple: "Le 6 janvier, *el día de Reyes*, les enfants espagnols ouvrent leurs cadeaux après le défilé des trois Rois mages (*la cabalgata*) et mangent le *roscón de Reyes*, une brioche en couronne.",
       items: [

@@ -157,8 +157,8 @@ export default {
           reponse: 2.5, tolerance: 0,
           explication: "Le symétrique par rapport à l'origine a pour abscisse l'opposé : l'opposé de −2,5 est 2,5. B et C sont à la même distance de 0, de part et d'autre." },
         { id: "5e-maths-02-nombres-relatifs-q16", type: "qcm", competence: "5e-maths-02-nombres-relatifs-c2", difficulte: 1,
-          q: "Parmi ces nombres, lequel est négatif ?", choix: ["−0,2", "0", "+4", "2,5"], bonne: 0,
-          explication: "Un nombre négatif est précédé du signe −, même s'il est très proche de zéro comme −0,2. Le nombre 0 est à la fois positif et négatif, mais on ne le classe pas parmi les négatifs ici." },
+          q: "Parmi ces nombres, lequel est négatif ?", choix: ["−0,2", "0,3", "+4", "2,5"], bonne: 0,
+          explication: "Un nombre négatif est précédé du signe −, même s'il est très proche de zéro comme −0,2. Les trois autres nombres sont positifs : 0,3 et 2,5 n'ont pas de signe écrit, ce qui signifie +0,3 et +2,5." },
       ]
     },
     // ───────────────────────── 3. Fractions ─────────────────────────

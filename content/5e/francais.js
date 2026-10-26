@@ -758,7 +758,7 @@ export default {
           explication: "« Octo » = huit, « déca » = dix. Ces préfixes grecs se retrouvent en mathématiques : octogone, décamètre." },
         { id: "5e-francais-11-poesie-types-textes-q10", type: "qcm", competence: "5e-francais-11-poesie-types-textes-c2", difficulte: 3,
           q: "« Pour qui sont ces serpents qui sifflent sur vos têtes ? » (Racine). Quel procédé sonore reconnais-tu ?", choix: ["Une allitération en [s]", "Une assonance en [a]", "Une rime embrassée", "Un vers libre"], bonne: 0,
-          explication: "Le son [s] revient six fois et imite le sifflement des serpents : c'est une allitération (répétition de consonnes). Une assonance répète une voyelle." },
+          explication: "Le son [s] revient cinq fois et imite le sifflement des serpents : c'est une allitération (répétition de consonnes). Une assonance répète une voyelle." },
         { id: "5e-francais-11-poesie-types-textes-q11", type: "assoc", competence: "5e-francais-11-poesie-types-textes-c3", difficulte: 3,
           q: "Associe chaque extrait à son type de texte.", paires: [["Le volcan entre en éruption lorsque la pression du magma devient trop forte.", "Explicatif"], ["— Tu viens ? — Attends, j'arrive !", "Dialogal"], ["Il faut lire chaque jour, car la lecture enrichit le vocabulaire.", "Argumentatif"], ["La salle était vaste, sombre, aux murs couverts de tableaux.", "Descriptif"]],
           explication: "L'explicatif répond à « pourquoi ? comment ? » ; le dialogal fait parler des personnages ; l'argumentatif veut convaincre (« il faut », « car ») ; le descriptif peint un lieu à l'imparfait." },
