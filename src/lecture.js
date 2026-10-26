@@ -22,9 +22,11 @@ export function retirerBalises(t) {
   return String(t ?? "").replace(RE_MARQUES, "");
 }
 
-/** Texte prononcé : sans mise en forme, blancs « ___ » marqués d'une pause. */
+/** Texte prononcé : sans mise en forme ; blancs « ___ », flèches et « / » entre deux formes deviennent une pause, ✔ ✘ se taisent. */
 function nettoyer(t) {
-  return t.replace(/\*+|==/g, "").replace(/_{3,}/g, " … ").replace(/\s+/g, " ");
+  return t.replace(/\*+|==/g, "").replace(/_{3,}/g, " … ")
+    .replace(/\s*[→⇒←↔⟶]\s*/g, ", ").replace(/\s+\/\s+/g, ", ").replace(/[✔✓✘✗]\uFE0F?/g, "")
+    .replace(/\s+/g, " ");
 }
 
 function decouperEcritures(texte, lang, out) {

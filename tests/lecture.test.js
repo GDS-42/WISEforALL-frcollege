@@ -35,6 +35,8 @@ test("arabe et chinois sont reconnus à leur écriture, sans balise", () => {
 test("ponctuation rattachée, segments voisins fusionnés, blancs marqués d'une pause", () => {
   assert.deepEqual(langues("[[I am]], [[I'm]], [[I'm not]]", "anglais"), ["en-GB|I am, I'm, I'm not"]);
   assert.deepEqual(langues("[[My ___ is Emma.]]", "anglais"), ["en-GB|My … is Emma."]);
+  assert.deepEqual(langues("✔ [[spielen → gespielt]] ; [[he / she / it is]] ; 3/4", "allemand"),
+    ["de-DE|spielen, gespielt ; he, she, it is", "fr-FR|; 3/4"]);
   assert.deepEqual(langues("« [[Nice to meet you]] » veut dire « Ravi de te rencontrer ».", "anglais"),
     ["en-GB|Nice to meet you", "fr-FR|» veut dire « Ravi de te rencontrer »."]);
   assert.deepEqual(segments("", "anglais"), []);
