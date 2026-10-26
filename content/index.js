@@ -77,6 +77,11 @@ export const MODULES = [
   },
   {
     "niveau": "5e",
+    "matiere": "chinois",
+    "path": "./5e/chinois.js"
+  },
+  {
+    "niveau": "5e",
     "matiere": "education-musicale",
     "path": "./5e/education-musicale.js"
   },
@@ -209,6 +214,11 @@ export const MODULES = [
     "niveau": "3e",
     "matiere": "anglais",
     "path": "./3e/anglais.js"
+  },
+  {
+    "niveau": "3e",
+    "matiere": "arabe",
+    "path": "./3e/arabe.js"
   },
   {
     "niveau": "3e",
