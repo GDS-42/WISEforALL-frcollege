@@ -46,7 +46,7 @@ export default {
         { id: "4e-eps-01-sante-entrainement-q05", type: "vf", competence: "4e-eps-01-sante-entrainement-c3", difficulte: 1,
           q: "Il faut attendre d'avoir soif pour boire pendant un effort.", reponse: false,
           explication: "La soif arrive quand le corps a déjà perdu de l'eau. Il faut boire par petites gorgées régulières, avant, pendant et après l'effort. Une perte de 2 % du poids en eau fait déjà baisser la performance." },
-        { id: "4e-eps-01-sante-entrainement-q06", type: "trous", competence: "4e-eps-01-sante-entrainement-c1", difficulte: 2,
+        { id: "4e-eps-01-sante-entrainement-q06", type: "trous", competence: "4e-eps-01-sante-entrainement-c1", difficulte: 2, strict: true,
           texte: "La fréquence cardiaque de réserve se calcule ainsi : FC maximale ___ FC de repos. Pour mesurer sa FC de repos, on prend son pouls le ___ au réveil.",
           reponses: [["−", "-", "moins"], ["matin"]],
           explication: "La FC de réserve est la marge entre ton cœur au repos et ton cœur à fond. La FC de repos se mesure couché, au réveil, avant toute activité : chez un sportif entraîné, elle est plus basse." },

@@ -111,7 +111,7 @@ export default {
           explication: "L'épaisseur d'air entre nous et les lointains adoucit les couleurs et les contrastes. Les peintres l'imitent en éclaircissant et en bleuissant l'arrière-plan." },
         { id: "4e-arts-plastiques-02-corps-espace-q04", type: "assoc", competence: "4e-arts-plastiques-02-corps-espace-c1", difficulte: 2,
           q: "Associe chaque procédé à l'effet qu'il produit.",
-          paires: [["Silhouette répétée plusieurs fois", "Mouvement"], ["Seulement une main dessinée", "Fragment"], ["Tête de 8 fois la hauteur du corps", "Proportions respectées"], ["Jambes très longues, torse minuscule", "Déformation expressive"]],
+          paires: [["Silhouette répétée plusieurs fois", "Mouvement"], ["Seulement une main dessinée", "Fragment"], ["Corps haut de 8 fois la hauteur de la tête", "Proportions respectées"], ["Jambes très longues, torse minuscule", "Déformation expressive"]],
           explication: "Répéter une forme décomposée suggère le déplacement, comme en chronophotographie. Le fragment isole une partie. La déformation volontaire des proportions n'est pas une erreur : c'est un choix qui exprime quelque chose." },
         { id: "4e-arts-plastiques-02-corps-espace-q05", type: "qcm", competence: "4e-arts-plastiques-02-corps-espace-c2", difficulte: 2,
           q: "Quel élément n'aide PAS à exprimer la tristesse dans un portrait ?",

@@ -612,7 +612,7 @@ export default {
           explication: "*Perdone* (usted) attire poliment l'attention, puis la question **¿Dónde está...?** avec son point d'interrogation inversé. *Dónde* porte un accent car il est interrogatif." },
         { id: "4e-espagnol-09-voyager-decrire-q11", type: "trous", competence: "4e-espagnol-09-voyager-decrire-c1", difficulte: 3, strict: true,
           texte: "Sigue todo ___ y la plaza está ___ del museo. (tout droit / en face)", reponses: [["recto"], ["enfrente"]],
-          explication: "*Todo recto* = tout droit (pas *tout droit* au sens de *derecho*). **Enfrente de** = en face de, en un seul mot. *En frente* en deux mots est aussi admis, mais *enfrente* est la forme recommandée." },
+          explication: "*Todo recto* = tout droit ; ne confonds pas avec *el derecho*, qui signifie « le droit » (la loi). **Enfrente de** = en face de, en un seul mot. *En frente* en deux mots est aussi admis, mais *enfrente* est la forme recommandée." },
         { id: "4e-espagnol-09-voyager-decrire-q12", type: "flash", competence: "4e-espagnol-09-voyager-decrire-c3", difficulte: 1,
           recto: "lejos de", verso: "loin de" },
         { id: "4e-espagnol-09-voyager-decrire-q13", type: "texte", competence: "4e-espagnol-09-voyager-decrire-c2", difficulte: 1,

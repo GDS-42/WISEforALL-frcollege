@@ -66,7 +66,7 @@ export default {
           explication: "C'est l'inverse : l'atome est presque entièrement vide. Si le noyau avait la taille d'une bille au centre d'un stade, les électrons tourneraient dans les tribunes." },
         { id: "4e-physique-chimie-01-atomes-et-molecules-q12", type: "texte", competence: "4e-physique-chimie-01-atomes-et-molecules-c4", difficulte: 2,
           q: "Comment s'appelle le tableau qui classe tous les éléments chimiques ?", reponses: ["tableau périodique", "le tableau périodique", "classification périodique", "la classification périodique", "tableau de Mendeleïev"],
-          explication: "Le tableau périodique des éléments, imaginé par Mendeleïev en 1869, range les éléments par ordre croissant et par familles de propriétés." },
+          explication: "Le tableau périodique des éléments, imaginé par Mendeleïev en 1869, range les éléments par numéro atomique croissant et les regroupe en familles aux propriétés voisines." },
         { id: "4e-physique-chimie-01-atomes-et-molecules-q13", type: "qcm", competence: "4e-physique-chimie-01-atomes-et-molecules-c4", difficulte: 3,
           q: "Dans le tableau périodique, que partagent les éléments d'une même colonne ?", choix: ["Des propriétés chimiques voisines", "La même masse", "La même couleur", "Le même nombre d'atomes par molécule"], bonne: 0,
           explication: "Une colonne regroupe une famille d'éléments qui réagissent de façon semblable, comme le sodium et le potassium. La masse, elle, augmente le long d'une ligne." },
