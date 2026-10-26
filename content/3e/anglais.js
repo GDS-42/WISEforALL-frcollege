@@ -188,7 +188,7 @@ export default {
           explication: "C'est un conseil, pas une obligation : should. Must serait trop fort pour une simple précaution, et needn't dirait le contraire (ce n'est pas la peine)." },
         { id: "3e-anglais-03-modaux-q03", type: "trous", competence: "3e-anglais-03-modaux-c1", difficulte: 1, strict: true,
           texte: "When I was five, I ___ already swim. (capacité passée)",
-          reponses: [["could"]],
+          reponses: [["could", "was able to"]],
           explication: "La capacité dans le passé s'exprime avec could, le prétérit de can. « I can already swim when I was five » mélange présent et passé." },
         { id: "3e-anglais-03-modaux-q04", type: "qcm", competence: "3e-anglais-03-modaux-c3", difficulte: 2,
           q: "Complète : « She ___ be at home, all the lights are off. »", choix: ["can't", "mustn't", "shouldn't", "needn't"], bonne: 0,

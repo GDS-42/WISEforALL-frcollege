@@ -634,7 +634,7 @@ export default {
           explication: "Les ultrasons sont trop aigus pour notre oreille. Ils servent en échographie médicale et dans les sonars. Les sons de moins de 20 Hz sont les infrasons. La force du son (dB) et sa fréquence (Hz) sont deux choses différentes." },
         { id: "3e-physique-chimie-09-signaux-sonores-lumineux-q09", type: "trous", competence: "3e-physique-chimie-09-signaux-sonores-lumineux-c1", difficulte: 2,
           texte: "Plus la fréquence d'un son est élevée, plus le son est ___. Plus son amplitude est grande, plus le son est ___.",
-          reponses: [["aigu", "aigü"], ["fort", "intense", "puissant"]],
+          reponses: [["aigu"], ["fort", "intense", "puissant"]],
           explication: "La fréquence fixe la hauteur (grave ou aigu), l'amplitude fixe l'intensité (faible ou fort). Un son peut être aigu et faible, ou grave et fort." },
         { id: "3e-physique-chimie-09-signaux-sonores-lumineux-q10", type: "num", competence: "3e-physique-chimie-09-signaux-sonores-lumineux-c2", difficulte: 3,
           q: "Le Soleil est à 150 millions de km de la Terre. Combien de temps met sa lumière pour nous parvenir, en secondes ? (vitesse : 300 000 km/s)", reponse: 500, unite: "s", tolerance: 5,

@@ -463,7 +463,7 @@ export default {
           explication: "Environ 11 millions de km², juste derrière les États-Unis, grâce à ses territoires ultramarins. C'est un atout économique (pêche, ressources) et militaire (présence sur tous les océans)." },
         { id: "3e-geographie-07-france-europe-monde-q04", type: "texte", competence: "3e-geographie-07-france-europe-monde-c1", difficulte: 1,
           q: "Comment appelle-t-on l'ensemble des pays et des personnes qui ont le français en partage ?", reponses: ["francophonie", "la francophonie", "la Francophonie", "Francophonie"],
-          explication: "La francophonie regroupe environ 320 millions de locuteurs, surtout en Afrique où le nombre de francophones augmente vite. L'Organisation internationale de la Francophonie réunit 88 États et gouvernements." },
+          explication: "La francophonie regroupe environ 320 millions de locuteurs, surtout en Afrique où le nombre de francophones augmente vite. L'Organisation internationale de la Francophonie réunit plus de 90 États et gouvernements." },
         { id: "3e-geographie-07-france-europe-monde-q05", type: "assoc", competence: "3e-geographie-07-france-europe-monde-c1", difficulte: 2,
           q: "Associe chaque élément à la forme de puissance qu'il illustre.", paires: [["Arme nucléaire", "Puissance militaire"], ["Francophonie", "Puissance culturelle"], ["Airbus", "Puissance économique"], ["Siège permanent à l'ONU", "Puissance diplomatique"]],
           explication: "La puissance se mesure sur plusieurs plans : la force armée (hard power), l'économie, la diplomatie et l'influence culturelle (soft power). La France combine les quatre, ce qui compense sa taille modeste." },
