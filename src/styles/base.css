@@ -246,6 +246,6 @@ select option { color: #000; }
 #contenu:focus { outline: none; } /* reçoit le focus après chaque navigation (lecteurs d'écran), sans cadre visible */
 
 /* Écritures arabe et chinoise (LV2) : polices système adaptées, sens de lecture, taille un peu plus grande. */
-.ecr-ar { font-family: "Noto Naskh Arabic", "Amiri", "Geeza Pro", "Traditional Arabic", "Arabic Typesetting", "Noto Sans Arabic", "Segoe UI", serif; font-size: 1.28em; line-height: 1.5; font-weight: 400; }
+.ecr-ar { font-family: "Noto Naskh Arabic", "Geeza Pro", "Traditional Arabic", "Noto Sans Arabic", "Segoe UI", serif; font-size: 1.4em; line-height: 1.45; font-weight: 400; }
 .ecr-zh { font-family: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Source Han Sans SC", "Noto Sans CJK SC", sans-serif; font-size: 1.12em; letter-spacing: .02em; }
 input[type="text"], textarea, .saisie, .trou { unicode-bidi: plaintext; } /* une réponse en arabe s'écrit de droite à gauche */

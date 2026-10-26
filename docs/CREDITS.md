@@ -28,3 +28,11 @@ réalisées avec le soutien de la NACIS (<https://www.naturalearthdata.com>).
   libres d'usage.
 - **Frontières** : celles de Natural Earth, qui représente les frontières *de facto*. Elles ne
   préjugent d'aucune position sur le statut des territoires.
+
+## Polices
+
+Toutes auto-hébergées dans `assets/fonts/` (paquets `@fontsource`), sous licence SIL Open Font
+License 1.1 : **Young Serif** (titres), **Lexend** (texte), **Caveat** (écriture manuscrite),
+**Atkinson Hyperlegible** (lecture facilitée) et **Noto Naskh Arabic** (écriture arabe, chargée
+seulement quand une page contient de l'arabe, grâce à `unicode-range`). Le chinois utilise les
+polices de l'appareil (Noto Sans SC, PingFang SC, Microsoft YaHei…), trop lourdes à embarquer.

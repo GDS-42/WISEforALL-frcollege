@@ -29,7 +29,7 @@ Principes :
 | `--pigment-texte` | pigment assez sombre (jour) ou clair (nuit) pour du texte |
 | `--ok`, `--ko`, `--attention`, `--or` | réussite, erreur, mise en garde, récompense |
 | `--f-titre` | Young Serif — titres |
-| `--f-texte` | Lexend — texte courant et interface |
+| `--f-texte` | Lexend — texte courant et interface (Noto Naskh Arabic pour l'arabe, polices système pour le chinois) |
 | `--f-main` | Caveat — annotations manuscrites |
 | `--r`, `--r-l` | rayons 6 px et 14 px |
 | `--ombre-tampon` | `3px 3px 0 var(--encre)` : ombre nette des éléments « posés » |

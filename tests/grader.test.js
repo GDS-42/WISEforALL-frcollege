@@ -169,3 +169,8 @@ test("LV2 : allemand, arabe, chinois", () => {
   assert.ok(!ok("ni hao ma", ["你好", "nǐ hǎo"], "chinois"));
   assert.ok(!ok("再见", ["你好", "nǐ hǎo"], "chinois"));
 });
+
+test("allemand : pas de « pluriel en -s » (dass ≠ das)", () => {
+  assert.ok(!texteCorrespond("das", ["dass"], { item: { matiere: "allemand" } }).ok);
+  assert.ok(texteCorrespond("chevaux", ["cheval"], { item: { matiere: "histoire" } }).ok);
+});

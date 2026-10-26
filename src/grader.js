@@ -285,8 +285,8 @@ function variantes(s, langue) {
     t = t2;
   }
   out.add(t);
-  out.add(singulier(t));
-  out.add(singulier(base));
+  // Pluriel en -s/-x : seulement en français, anglais, espagnol (en allemand, « dass » ≠ « das »).
+  if (["fr", "en", "es"].includes(langue)) { out.add(singulier(t)); out.add(singulier(base)); }
   const n = nombreEnLettres(t);
   if (Number.isFinite(n)) out.add(String(n));
   return [...out].filter(Boolean);
@@ -360,7 +360,7 @@ export function texteCorrespond(saisie, acceptables, { strict = false, item = nu
     for (const x of vs) {
       const motsX = x.split(" "), motsA = ya.split(" ");
       if (motsX.length > motsA.length + 4) continue;
-      if (` ${x} `.includes(` ${ya} `) || ` ${singulier(x)} `.includes(` ${singulier(ya)} `)) return { ok: true, exact: false, proche: a };
+      if (` ${x} `.includes(` ${ya} `) || (["fr", "en", "es"].includes(langue) && ` ${singulier(x)} `.includes(` ${singulier(ya)} `))) return { ok: true, exact: false, proche: a };
     }
   }
   void negS;

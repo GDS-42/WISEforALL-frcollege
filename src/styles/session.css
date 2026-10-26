@@ -153,3 +153,8 @@ body[data-ecran="session"] { padding-left: 0; padding-bottom: 2rem; }
 .detail-questions em { color: var(--encre-3); }
 .seance-vide .lume { width: 96px; height: 96px; display: block; margin: .2rem auto .4rem; }
 .seance-vide > p.muet { max-width: 52ch; margin-inline: auto; }
+/* Écriture arabe dans les réponses, jetons et cartes : assez grande pour distinguer les points des lettres. */
+.choix .ecr-ar, .jeton .ecr-ar { font-size: 2.1em; line-height: 1.15; }
+.carte-flash .ecr-ar, .face .ecr-ar { font-size: 2em; line-height: 1.35; }
+.choix .ecr-zh, .jeton .ecr-zh { font-size: 1.25em; }
+.carte-flash .ecr-zh, .face .ecr-zh { font-size: 1.45em; }
