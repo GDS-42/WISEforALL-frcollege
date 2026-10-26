@@ -267,24 +267,24 @@ export default {
         {
           titre: "Tutoyer : [[tú]] et [[vosotros]]",
           blocs: [
-            { t: "propriete", titre: "Deux règles simples", md: "**[[tú]]** : la forme de la 3e personne du présent. [[hablar]] → *[[habla]]* ; [[comer]] → *[[come]]* ; [[escribir]] → *[[escribe]]*.\n**[[vosotros]]** : l'infinitif dont le **[[-r]]** devient **[[-d]]**. *[[hablad]]*, *[[comed]]*, *[[escribid]]*." },
+            { t: "propriete", titre: "Deux règles simples", md: "**[[tú]]** : la forme de la 3e personne du présent. [[hablar]] → *[[habla]]* ; [[comer]] → *[[come]]* ; [[escribir]] → *[[escribe]]*.\n**[[vosotros]]** : l'infinitif dont le **-r** devient **-d**. *[[hablad]]*, *[[comed]]*, *[[escribid]]*." },
             { t: "tableau", titre: "L'impératif régulier", entetes: ["Infinitif", "[[tú]]", "[[vosotros]]"], lignes: [["[[hablar]] (parler)", "[[¡Habla!]]", "[[¡Hablad!]]"], ["[[comer]] (manger)", "[[¡Come!]]", "[[¡Comed!]]"], ["[[vivir]] (vivre)", "[[¡Vive!]]", "[[¡Vivid!]]"], ["[[beber]] (boire)", "[[¡Bebe!]]", "[[¡Bebed!]]"], ["[[cerrar]] (fermer, [[e]] → [[ie]])", "[[¡Cierra!]]", "[[¡Cerrad!]]"]] },
             { t: "attention", md: "Le [[tú]] garde la diphtongue du présent (*[[cierra]]*, *[[duerme]]*), mais le [[vosotros]], formé sur l'infinitif, n'en a jamais : *[[cerrad]]*, *[[dormid]]*." },
-            { t: "verifie", q: "Comment dit-on « Mangez ! » à [[vosotros]] ?", choix: ["[[¡Comed!]]", "[[¡Comen!]]", "[[¡Comad!]]", "[[¡Coméis!]]"], bonne: 0, explication: "[[Vosotros]] : infinitif [[comer]], le [[-r]] devient [[-d]] → [[¡Comed!]] [[Coméis]] est le présent, [[coman]] la forme de [[ustedes]]." },
+            { t: "verifie", q: "Comment dit-on « Mangez ! » à [[vosotros]] ?", choix: ["[[¡Comed!]]", "[[¡Comen!]]", "[[¡Comad!]]", "[[¡Coméis!]]"], bonne: 0, explication: "[[Vosotros]] : infinitif [[comer]], le -r devient -d → [[¡Comed!]] [[Coméis]] est le présent, [[coman]] la forme de [[ustedes]]." },
           ],
         },
         {
           titre: "Huit impératifs irréguliers",
           blocs: [
             { t: "tableau", titre: "Les irréguliers avec [[tú]]", entetes: ["Infinitif", "[[tú]]", "Exemple"], lignes: [["[[poner]] (mettre)", "[[**pon**]]", "[[¡Pon la mesa!]] (Mets la table !)"], ["[[tener]] (avoir)", "[[**ten**]]", "[[¡Ten cuidado!]] (Fais attention !)"], ["[[venir]] (venir)", "[[**ven**]]", "[[¡Ven aquí!]] (Viens ici !)"], ["[[hacer]] (faire)", "[[**haz**]]", "[[¡Haz los deberes!]] (Fais tes devoirs !)"], ["[[decir]] (dire)", "[[**di**]]", "[[¡Di la verdad!]] (Dis la vérité !)"], ["[[salir]] (sortir)", "[[**sal**]]", "[[¡Sal de aquí!]] (Sors d'ici !)"], ["[[ser]] (être)", "[[**sé**]]", "[[¡Sé bueno!]] (Sois sage !)"], ["[[ir]] (aller)", "[[**ve**]]", "[[¡Ve a tu cuarto!]] (Va dans ta chambre !)"]] },
-            { t: "astuce", md: "Retiens la formule magique : **[[Ven, di, sal, haz, ten, ve, pon, sé]]**. Des formes courtes, d'une seule syllabe. Seul le **[[tú]]** est irrégulier : au vosotros, on revient à la règle (*[[poned]]*, *[[tened]]*, *[[haced]]*)." },
+            { t: "astuce", md: "Retiens la formule magique : **[[Ven, di, sal, haz, ten, ve, pon, sé]]**. Des formes courtes, d'une seule syllabe. Seul le **[[tú]]** est irrégulier : au [[vosotros]], on revient à la règle (*[[poned]]*, *[[tened]]*, *[[haced]]*)." },
             { t: "verifie", q: "Quel est l'impératif de « [[hacer]] » avec [[tú]] ?", choix: ["[[hace]]", "[[haz]]", "[[haga]]", "[[haced]]"], bonne: 1, explication: "[[Hacer]] fait partie des huit irréguliers : [[¡Haz!]] [[Haga]] est la forme de [[usted]], [[haced]] celle de [[vosotros]]." },
           ],
         },
         {
           titre: "Vouvoyer : [[usted]] et [[ustedes]]",
           blocs: [
-            { t: "propriete", titre: "Les voyelles s'inversent", md: "Pour **[[usted]]**, la voyelle de la terminaison s'inverse : **[[-ar]] → [[-e]]**, **[[-er / -ir]] → [[-a]]**. *[[hable]]*, *[[coma]]*, *[[escriba]]*. Pour **[[ustedes]]**, on ajoute **[[-n]]** : *[[hablen]]*, *[[coman]]*, *[[escriban]]*." },
+            { t: "propriete", titre: "Les voyelles s'inversent", md: "Pour **[[usted]]**, la voyelle de la terminaison s'inverse : **[[-ar]] → -e**, **[[-er / -ir]] → -a**. *[[hable]]*, *[[coma]]*, *[[escriba]]*. Pour **[[ustedes]]**, on ajoute **-n** : *[[hablen]]*, *[[coman]]*, *[[escriban]]*." },
             { t: "exemple", titre: "Les formes irrégulières de [[usted]]", md: "Les verbes irréguliers à la 1re personne du présent gardent leur irrégularité : [[hago]] → **[[haga]]** ; [[tengo]] → **[[tenga]]** ; [[pongo]] → **[[ponga]]** ; [[salgo]] → **[[salga]]** ; [[digo]] → **[[diga]]**.\n*[[Entre, por favor. Siéntese. Tenga cuidado.]]*\nEntrez, s'il vous plaît. Asseyez-vous. Faites attention." },
             { t: "texte", md: "On emploie [[usted]] avec un adulte qu'on ne connaît pas : un vendeur, un médecin, un passant. Ce « vous » de politesse s'adresse à **une seule** personne ; *[[ustedes]]* s'adresse à plusieurs : *[[¡Siéntense, por favor!]]*" },
           ],
@@ -524,7 +524,7 @@ export default {
             { t: "texte", md: "L'Espagne est divisée en **[[17 comunidades autónomas]]** ([[Cataluña, Andalucía, Galicia, País Vasco, Madrid…]]), qui ont chacune leur gouvernement. À côté du castillan, trois langues sont **co-officielles** dans leurs régions : le **catalan**, le **basque** (*[[euskera]]*) et le **galicien**." },
             { t: "carte", fond: "monde", titre: "Le [[Camino de Santiago]] et Guernica", cadre: [-10, 41, 3.5, 44.2], zones: ["ES"], reperes: [{ nom: "Roncesvalles", lat: 43.0092, lon: -1.3194 }, { nom: "Pamplona", lat: 42.8125, lon: -1.6458 }, { nom: "Burgos", lat: 42.3439, lon: -3.6969 }, { nom: "León", lat: 42.5987, lon: -5.5671 }, { nom: "Santiago de Compostela", lat: 42.8782, lon: -8.5448 }, { nom: "Guernica", lat: 43.3167, lon: -2.6833 }], traits: [{ de: [43.0092, -1.3194], a: [42.8125, -1.6458] }, { de: [42.8125, -1.6458], a: [42.3439, -3.6969] }, { de: [42.3439, -3.6969], a: [42.5987, -5.5671] }, { de: [42.5987, -5.5671], a: [42.8782, -8.5448], label: "Camino francés" }], legende: "Le chemin le plus fréquenté entre en Espagne par les Pyrénées et traverse le nord du pays jusqu'à [[Santiago de Compostela]], en Galice." },
             { t: "texte", md: "Depuis le Moyen Âge, des pèlerins marchent sur le **[[Camino de Santiago]]** jusqu'à la cathédrale de **[[Santiago de Compostela]]**. En **1937**, pendant la guerre civile, **Picasso** peint *Guernica* pour dénoncer le **bombardement** de cette petite ville basque : un cri contre la violence de la guerre." },
-            { t: "liste", titre: "À table !", items: ["**[[la paella]]** : riz au safran, venu de la région de Valencia", "**[[la tortilla de patatas]]** : omelette aux pommes de terre", "**[[el gazpacho]]** : soupe froide de tomates, d'Andalousie", "**[[las tapas]]** : petites portions à partager", "**[[los churros]]** : beignets, souvent trempés dans du chocolat chaud"] },
+            { t: "liste", titre: "À table !", items: ["**[[la paella]]** : riz au safran, venu de la région de [[Valencia]]", "**[[la tortilla de patatas]]** : omelette aux pommes de terre", "**[[el gazpacho]]** : soupe froide de tomates, d'Andalousie", "**[[las tapas]]** : petites portions à partager", "**[[los churros]]** : beignets, souvent trempés dans du chocolat chaud"] },
           ],
         },
       ],

@@ -577,7 +577,7 @@ export default {
           q: "Au marché, comment demande-t-on « Combien ça coûte ? » ?", choix: ["¿Cuánto cuesta?", "¿Cuántos cuesta?", "¿Qué cuesta?", "¿Cómo cuesta?"], bonne: 0,
           explication: "**[[¿Cuánto cuesta?]]** : *[[cuánto]]* au singulier pour un prix. *[[Cuántos]]* s'accorde avec un nom pluriel (*[[¿cuántos euros?]]*). *[[Cuesta]]* vient de *[[costar]]* ([[o → ue]])." },
         { id: "5e-espagnol-09-nourriture-corps-q05", type: "trous", competence: "5e-espagnol-09-nourriture-corps-c2", difficulte: 2, strict: true,
-          texte: "[[— Quiero un ___ (kilo) de tomates, por favor.\n— Son tres ___ (euros).]]", reponses: [["kilo"], ["euros"]],
+          texte: "[[— Quiero un ___]] (kilo) [[de tomates, por favor.\n— Son tres ___]] (euros).", reponses: [["kilo"], ["euros"]],
           explication: "*[[Un kilo de tomates]]* : la quantité est suivie de [[*de*]]. Le prix se donne avec *[[son]]* au pluriel : *[[son tres euros]]* (mais *[[es un euro]]* au singulier)." },
         { id: "5e-espagnol-09-nourriture-corps-q06", type: "ordre", competence: "5e-espagnol-09-nourriture-corps-c2", difficulte: 2,
           q: "Remets la demande dans l'ordre : « Bonjour, je voudrais un demi-kilo de fraises, s'il vous plaît. »", elements: ["Buenos días,", "quiero", "medio kilo", "de fresas,", "por favor."],
@@ -634,7 +634,7 @@ export default {
       items: [
         { id: "5e-espagnol-10-monde-hispanophone-q01", type: "qcm", competence: "5e-espagnol-10-monde-hispanophone-c1", difficulte: 1,
           q: "Quelle est la capitale de l'Espagne ?", choix: ["Madrid", "Barcelona", "Sevilla", "Lisboa"], bonne: 0,
-          explication: "**Madrid**, au centre du pays. [[Barcelona]] est la capitale de la Catalogne, [[Sevilla]] celle de l'Andalousie, et Lisboa est la capitale du Portugal." },
+          explication: "**Madrid**, au centre du pays. [[Barcelona]] est la capitale de la Catalogne, [[Sevilla]] celle de l'Andalousie, et [[Lisboa]] est la capitale du Portugal." },
         { id: "5e-espagnol-10-monde-hispanophone-q02", type: "assoc", competence: "5e-espagnol-10-monde-hispanophone-c2", difficulte: 2,
           q: "Associe chaque pays à sa capitale.", paires: [["México", "Ciudad de México"], ["Argentina", "Buenos Aires"], ["Perú", "Lima"], ["Colombia", "Bogotá"], ["Chile", "Santiago"]],
           explication: "Ces cinq pays sont parmi les plus peuplés de l'Amérique hispanophone. Le Mexique est le pays qui compte le plus de locuteurs de l'espagnol au monde." },
@@ -676,7 +676,7 @@ export default {
           explication: "L'Espagne est en Europe, au nord du tropique. Le Mexique est en Amérique du Nord, la Colombie près de l'équateur, le Pérou juste au sud de l'équateur et l'Argentine tout au sud du continent." },
         { id: "5e-espagnol-10-monde-hispanophone-q15", type: "qcm", competence: "5e-espagnol-10-monde-hispanophone-c1", difficulte: 3,
           q: "Quel fleuve traverse Séville, en Andalousie ?", choix: ["Le Guadalquivir", "L'Èbre", "Le Tage", "Le Duero"], bonne: 0,
-          explication: "Le **[[Guadalquivir]]** (de l'arabe « le grand fleuve ») traverse [[Córdoba]] et [[Sevilla]]. L'Èbre coule au nord-est vers la Méditerranée ; le Tage passe à [[Toledo]] et Lisboa ; le [[Duero]] traverse la Castille et le Portugal." },
+          explication: "Le **Guadalquivir** (de l'arabe « le grand fleuve ») traverse [[Córdoba]] et [[Sevilla]]. L'Èbre coule au nord-est vers la Méditerranée ; le Tage passe à [[Toledo]] et [[Lisboa]] ; le [[Duero]] traverse la Castille et le Portugal." },
       ]
     },
   ]
