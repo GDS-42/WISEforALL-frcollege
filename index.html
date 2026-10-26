@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>ÉCLORE — le jardin du collège</title>
+  <meta name="description" content="ÉCLORE : un jeu pour apprendre tout le programme du collège, graine après graine. Répétition espacée, feedback bienveillant, progression visible.">
+  <meta name="theme-color" content="#0d1230">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="assets/icone.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/icone-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;0,9..144,700;1,9..144,400&family=Nunito:wght@400;600;700;800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+  <link rel="stylesheet" href="src/styles.css">
+</head>
+<body data-theme="nuit">
+  <div id="ciel" aria-hidden="true"><div class="etoiles"></div><div class="lucioles"></div></div>
+  <a class="saut" href="#contenu">Aller au contenu</a>
+  <header id="entete"></header>
+  <main id="contenu" tabindex="-1"></main>
+  <nav id="navigation" aria-label="Navigation principale"></nav>
+  <div id="toasts" aria-live="polite" aria-atomic="true"></div>
+  <noscript><p style="padding:2rem;font-family:sans-serif">ÉCLORE a besoin de JavaScript pour fonctionner.</p></noscript>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>

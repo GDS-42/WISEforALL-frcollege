@@ -1,0 +1,14 @@
+{
+  "name": "eclore",
+  "version": "1.0.0",
+  "description": "ÉCLORE — un jeu pour apprendre tout le programme du collège, graine après graine.",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node tools/serve.mjs",
+    "validate": "node tools/validate.mjs",
+    "build:index": "node tools/build-index.mjs",
+    "test": "node --test tests/*.test.js && node tools/validate.mjs"
+  },
+  "license": "MIT"
+}
