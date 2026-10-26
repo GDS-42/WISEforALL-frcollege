@@ -1,7 +1,7 @@
 // ÉCLORE — Planches botaniques génératives (charte « Herbier » : encre, lavis d'aquarelle, papier en réserve).
 // Chaque chapitre est une plante ; elle grandit avec la mémoire. Repère 80 × 120, sol à y = 120.
 // Stades : 0 graine endormie, 1 germe, 2 jeune pousse, 3 bouton, 4 floraison, 5 splendeur.
-// Couleurs : uniquement des jetons CSS hérités (--encre, --pigment, --or, --papier, --seve) avec repli.
+// Couleurs : uniquement des jetons CSS hérités (--encre, --pigment, --or, --papier, --seve, --eau) avec repli.
 // Filtres et marqueurs globaux : voir src/ui/defs.js (#aquarelle, #halo).
 import { svg } from "./ui/dom.js";
 
@@ -13,6 +13,7 @@ const SEVE = "var(--seve, var(--ok, #6f8a4e))";
 const OR = "var(--or, #c9a03c)";
 const PAPIER = "var(--papier, #f6efe0)";
 const REFLET = "var(--reflet, var(--papier, #f6efe0))";
+const EAU = "var(--eau, #6b9fb4)";
 const MAIN = "var(--f-main, 'Caveat', 'Segoe Script', cursive)";
 
 // ───────────────────────── hasard déterministe et géométrie ─────────────────────────
@@ -74,6 +75,9 @@ const PROF = {
   lanterne: t => Math.pow(Math.sin(Math.PI * Math.pow(t, .62)), .95) * (1 - .1 * t),
   chute: t => (t < .3 ? .32 + t * .9 : 1) * Math.pow(Math.sin(Math.PI * Math.pow(t, .5)), .7),
   gland: t => Math.pow(Math.sin(Math.PI * Math.pow(t, 1.25)), .6),
+  bractee: t => Math.pow(Math.sin(Math.PI * Math.pow(t, .72)), .62) * (1 - .2 * t),
+  lotus: t => Math.pow(Math.sin(Math.PI * Math.pow(t, .8)), .92),
+  massue: t => t < .45 ? .3 : .3 * (1 - (t - .45) / .55) + .78 * Math.pow(Math.sin(Math.PI * Math.pow((t - .45) / .55, .75)), .8),
 };
 
 // ───────────────────────── l'atelier : calques d'encre et de lavis ─────────────────────────
@@ -236,11 +240,30 @@ function dessinGraine(A, forme) {
     A.plume(sp.length ? [[x - 1, y + 4], [x - 4, y + 1], sp[3], sp[8]] : [], 1.4, .6);
     A.lav(courbe(sp) + "Z", PIG, .4);
     A.ink(courbe(sp), .6);
+  } else if (forme === "edelweiss") {
+    // akène fuselé coiffé de son aigrette : la graine voyage au vent des alpages
+    A.feuille(...T(-5, 0), a - 90, 7.6, 1.8, { profil: PROF.ovale, c: PIG, o: .5, o2: .3, nervure: false, cambre: 0, reserve: true });
+    A.ink(courbe([T(2.6, 0), T(4.2, .2)]), .4, ENCRE, .8);
+    const [px, py] = T(4.2, .2); let d = "";
+    for (let k = -4; k <= 4; k++) { const th = rad(a - 90 + k * 15), l = 7 - Math.abs(k) * .45, q = [px + Math.cos(th) * l, py + Math.sin(th) * l]; d += courbe([[px, py], [px + Math.cos(th) * l * .5 + k * .12, py + Math.sin(th) * l * .5], q]); if (A.detail) d += `M${pt(q)}l${f(Math.cos(th + .9) * 1.1)} ${f(Math.sin(th + .9) * 1.1)}`; }
+    A.ink(d, .3, ENCRE, .7);
+  } else if (forme === "jasmin") {
+    // baie double, noire et luisante, sur son calice
+    for (const v of [-2.2, 2.2]) { const o = ovale(...T(-.6, v), 3, 2.5, a - 90, 9); A.lav(o, ENCRE, .42); A.lav(o, PIG, .3); A.ink(o, .45); A.lav(ovale(...T(.4, v - .9), .9, .6, a - 90, 6), REFLET, .8, true); }
+    A.lav(ovale(...T(-3.8, 0), 1.6, 2.2, a - 90, 7), SEVE, .5); A.ink(courbe([T(-3.4, -2), T(-4.4, 0), T(-3.4, 2)]), .4);
+    A.ink(courbe([T(-4.4, 0), T(-6.6, .4), T(-8, -.6)]), .5);
+  } else if (forme === "lotus") {
+    // graine de lotus : noix ovoïde, dure et sombre, téton à l'apex ; elle dort dans la vase, sous l'eau
+    A.feuille(...T(-5, 0), a - 90, 10, 3.5, { profil: PROF.gland, c: ENCRE, o: .34, o2: .22, nervure: false, cambre: 0, reserve: true });
+    A.lav(ovale(...T(-1, 0), 4, 2.6, a - 90, 8), PIG, .28);
+    A.inkF(point(...T(-5.4, 0), .7), ENCRE, .85);
+    // au bord de la mare : l'eau affleure de part et d'autre du monticule de vase
+    for (const [x0, x1] of [[1, 17], [63, 79]]) { A.lav(ferme([[x0, 120.4], [(x0 + x1) / 2, 119.4], [x1, 120.5], [(x0 + x1) / 2, 122.4]]), EAU, .3); A.ink(courbe([[x0 + 2, 121.7], [(x0 + x1) / 2, 121.4], [x1 - 3, 121.8]]), .3, ENCRE, .45); }
   } else {
     A.feuille(...T(-5, 0), a - 90, 10, 3.6, { profil: PROF.ovale, c: PIG, o: .42, o2: .28, nervure: false, reserve: true });
     A.ink(courbe([T(-3.6, 1.4), T(0, 2.4), T(3.4, 1.6)]), .32, ENCRE, .55);
   }
-  if (forme !== "fougere") {
+  if (forme !== "fougere" && forme !== "edelweiss") {
     const s0 = T(4.6, 0), s1 = T(7.5, -1.2), s2 = T(8.6, 1.6);
     A.plume([s0, s1, T(9.8, -.2), s2], .9, .5, ENCRE, .8);
     A.lav(ovale(s2[0], s2[1], 1.6, 1, a), SEVE, .5);
@@ -787,6 +810,222 @@ const ESPECES = {
     if (s >= 4) tete(T.fin[0] + (s >= 5 ? 3 : 0), T.fin[1] + (s >= 5 ? 3 : 1), s === 4 ? 15 : 17, s >= 5 ? 14 : -6, .72, true);
     if (s >= 5) { A.plan(0); const B = A.tige(...T.at(.5), 16, 120 - H * .64, { cintre: 5, w0: 1.5, w1: 1 }); tete(B.fin[0], B.fin[1], 7.5, -20, .75, true); }
     sol(A, s); finale(A, s, lueur, "papillon", [8, 12, 30, 34]);
+  },
+  edelweiss(A, s, r, lueur) {
+    // Edelweiss des Alpes : touffe basse de feuilles étroites feutrées ; étoile de bractées laineuses autour de capitules dorés.
+    const duvet = F => { let d = ""; for (const bord of [F.up, F.dn]) for (let i = 2; i < bord.length - 2; i += 2) { const q = bord[i], m = F.mid[i], l = Math.hypot(q[0] - m[0], q[1] - m[1]) || 1; d += `M${pt(q)}l${f((q[0] - m[0]) / l * .9 + .2)} ${f((q[1] - m[1]) / l * .9 - .3)}`; } A.ink(d, .22, ENCRE, .45); };
+    const fo = (x, y, a, l, w = .15) => { const F = A.feuille(x, y, a, l, l * w, { profil: PROF.lanceole, o: .3, o2: .2, nerv: 0, trait: .4, cambre: (r() - .5) * .3 }); A.lav(contour(F.up, F.dn), REFLET, .4); if (A.detail && l > 8) duvet(F); return F; };
+    const touffe = (x, n, Lm, ouv = 78) => { for (let i = 0; i < n; i++) { const a = -90 - ouv + 2 * ouv * (n === 1 ? .5 : i / (n - 1)) + (r() - .5) * 10; fo(x + (r() - .5) * 2, 120, a, Lm * (1 - Math.abs(a + 90) / 230) * (.85 + r() * .25)); } };
+    const capitules = (cx, cy, R, sq) => {
+      const pos = [[0, 0], ...Array.from({ length: 6 }, (_, i) => { const th = rad(i * 60 + 20 + r() * 12); return [Math.cos(th) * R * .24, Math.sin(th) * R * .24 * sq]; })];
+      let o = "", dots = "";
+      for (const [u, v] of pos) { o += ovale(cx + u, cy + v, R * .12, R * .12 * (.6 + sq * .4), 0, 7); dots += point(cx + u - R * .03, cy + v - R * .03, R * .03); }
+      A.lav(o, OR, .6); A.lav(o, ENCRE, .1); A.sil(o); A.ink(o, .32, ENCRE, .8); if (A.detail) A.inkF(dots, ENCRE, .6);
+    };
+    const etoile = (cx, cy, R, ouvert = true, plan = 1) => {
+      A.plan(plan); A.lav("M0 0", REFLET, .8);
+      const n = ouvert ? 8 + Math.round(r()) : 6, sq = .7, rot = r() * 45;
+      for (let i = 0; i < n; i++) {
+        let a, L;
+        if (ouvert) { const th = rad(rot + i * 360 / n + (r() - .5) * 12), dx = Math.cos(th), dy = Math.sin(th) * sq; a = deg(Math.atan2(dy, dx)); L = R * (i % 2 ? .74 : 1) * (.9 + r() * .2) * Math.hypot(dx, dy); }
+        else { a = -90 + (i / (n - 1) - .5) * 80 + (r() - .5) * 8; L = R * (.85 + r() * .25); }
+        const [ox, oy] = ouvert ? mk(cx, cy, a)(R * .14, 0) : [cx, cy];
+        const F = A.feuille(ox, oy, a, L, Math.max(1.2, (ouvert ? R : R * .8) * .2), { profil: PROF.bractee, c: PIG, o: .06, o2: .14, nerv: 0, nervure: false, dents: 5, creux: .12, trait: .42, cambre: (r() - .5) * .2 });
+        const d = contour(F.up, F.dn); A.lav(d, REFLET, .8); A.lav(d, REFLET, .45);
+        if (A.detail && L > 6) duvet(F);
+      }
+      A.plan(plan + 1);
+      if (ouvert) capitules(cx, cy, R, sq);
+      else { const o = ovale(cx, cy - R * .5, R * .2, R * .14, 0, 7); A.lav(o, OR, .45); A.ink(o, .3, ENCRE, .7); }
+    };
+    const caillou = (x, w, h) => { const d = ferme([[x - w, 120.6], [x - w * .8, 120 - h * .7], [x - w * .1, 120 - h], [x + w * .7, 120 - h * .8], [x + w, 120.4]]); A.lav(d, ENCRE, .1); A.lav(ferme([[x, 120.4], [x + w * .2, 120 - h * .9], [x + w * .7, 120 - h * .8], [x + w, 120.4]]), ENCRE, .1); A.ink(d, .5, ENCRE, .8); if (A.detail) A.hachures(x + w * .3, 120 - h * .5, x + w * .75, 120 - h * .3, 3, 60, h * .35, .28, .5); };
+    if (s === 1) { touffe(40, 4, 10, 52); sol(A, 1); return; }
+    if (s === 2) { touffe(40, 7, 18, 74); sol(A, 2); return; }
+    const tiges = {
+      3: [[0, 40, 7.5, false], [-10, 28, 5, false]],
+      4: [[0, 52, 12.5, true], [-14, 38, 8, false], [12, 34, 9, true]],
+      5: [[0, 64, 13, true], [-19, 50, 11.5, true], [18, 54, 12, true], [-7, 36, 8, false], [10, 31, 8.5, true]],
+    }[s];
+    if (s >= 5) { caillou(12, 7, 6.5); caillou(66, 5.5, 5); touffe(26, 5, 11, 70); touffe(55, 4, 10, 60); }
+    touffe(40, s === 3 ? 8 : 9, s === 3 ? 18 : 20, 80);
+    tiges.forEach(([dx, H, R, ouvert], i) => {
+      A.plan(0);
+      const T = A.tige(40 + dx * .2, 120, 40 + dx + (r() - .5) * 4, 120 - H, { cintre: -dx * .25 + (r() - .5) * 4, w0: i ? 1.2 : 1.5, w1: .75 });
+      for (const u of [.32, .58]) fo(...T.at(u), T.ang(u) + (i + u > .5 ? 38 : -38) * (u > .5 ? -1 : 1), 6 + R * .25, .14);
+      etoile(...T.fin, R, ouvert, 1 + (i % 2) * 2);
+    });
+    A.plan(0); sol(A, s, 16 + s * 3); finale(A, s, lueur, "papillon", [10, 14, 70, 34]);
+  },
+
+  jasmin(A, s, r, lueur) {
+    // Jasmin officinal : liane aux feuilles opposées, pennées (foliole terminale plus longue) ;
+    // petites étoiles blanches à cinq lobes au bout d'un long tube rosé ; boutons en massue teintés de pigment.
+    const foliole = (x, y, a, l) => A.feuille(x, y, a, l, l * .3, { profil: PROF.lanceole, o: .32, o2: .22, nerv: l > 7 ? 2 : 0, trait: .45, cambre: (r() - .5) * .3 });
+    const pennee = (x, y, a, len, paires = 2) => {
+      const T = mk(x, y, a), b = (r() - .5) * .14 * len;
+      A.ink(courbe([T(0, 0), T(len * .5, b), T(len, b * .4)]), .42);
+      for (let j = 0; j < paires; j++) { const u = len * (.32 + .5 * j / paires), [px, py] = T(u, b * Math.sin(Math.PI * u / len)); for (const c of [-1, 1]) foliole(px, py, a + c * (56 - j * 8), len * (.46 - .05 * j)); }
+      foliole(...T(len, b * .4), a + (r() - .5) * 10, len * .62);
+    };
+    const fleur = (px, py, ang, R) => {
+      // tube (vu de biais), puis la corolle en étoile, inclinée selon la direction du pédicelle
+      const [cx, cy] = mk(px, py, ang)(R * 1.25, 0), sq = .55 + r() * .4, rot = r() * 72;
+      A.feuille(px, py, ang, R * 1.3, R * .13, { profil: t => .55 + .45 * t, c: PIG, o: .42, o2: 0, nervure: false, nerv: 0, trait: .35, cambre: 0 });
+      A.lav("M0 0", REFLET, .85);
+      for (let i = 0; i < 5; i++) {
+        const th = rad(rot + i * 72), dx = Math.cos(th), dy = Math.sin(th) * sq, a = deg(Math.atan2(dy, dx)) + ang + 90;
+        const F = A.feuille(cx, cy, a, R * (.55 + .45 * Math.hypot(dx, dy)), R * .3, { profil: PROF.lanceole, c: PIG, o: .1, o2: .12, nervure: false, nerv: 0, trait: .34, cambre: (r() - .5) * .2 });
+        A.lav(contour(F.up, F.dn), REFLET, .85);
+      }
+      A.lav(point(cx, cy, R * .28), PIG, .3); A.inkF(point(cx, cy, R * .1), ENCRE, .75);
+      if (A.detail) A.inkF(point(cx + R * .16, cy - R * .08, R * .06) + point(cx - R * .1, cy + R * .12, R * .06), OR, .9);
+    };
+    const bouton = (px, py, ang, R) => {
+      const F = A.feuille(px, py, ang, R * 2, R * .34, { profil: PROF.massue, c: PIG, o: .5, o2: .3, nervure: false, nerv: 0, cambre: (r() - .5) * .12, trait: .4 });
+      if (A.detail) { const n = F.mid.length - 1; A.ink(courbe([F.mid[Math.round(n * .55)], F.mid[n - 1]]), .25, ENCRE, .5); }
+    };
+    const cyme = (x, y, a, nF, nB, R) => {
+      A.plan(9 - 2); const n = nF + nB, kinds = Array.from({ length: n }, (_, i) => i < nF);
+      for (let i = n - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [kinds[i], kinds[j]] = [kinds[j], kinds[i]]; }
+      kinds.forEach((fl, k) => {
+        const ang = a + (n === 1 ? 0 : -58 + 116 * k / (n - 1)) + (r() - .5) * 12, l = 3.2 + r() * 2.6, [px, py] = mk(x, y, ang)(l, 0);
+        A.ink(courbe([[x, y], mk(x, y, ang)(l * .5, .4), [px, py]]), .38);
+        if (fl) fleur(px, py, ang, R * (.9 + r() * .2)); else bouton(px, py, ang + (r() - .5) * 20, R * .75);
+      });
+      A.inkF(point(x, y, .6)); A.plan(0);
+    };
+    if (s === 1) return germe(A, { profil: PROF.ovale, long: 7.5, larg: 3.2 });
+    const tuteur = s >= 4 ? { x: 47 + (r() - .5) * 2, haut: s === 4 ? 60 : 36 } : null;
+    if (tuteur) {
+      A.plan(1);
+      const { x, haut } = tuteur, p = [[x, 121], [x - .2, 100], [x + .3, 70], [x + .1, haut]], d = A.plumeD(p, 2.6, 2.1, false);
+      A.lav(d, OR, .28); A.lav(d, ENCRE, .1); A.ink(d, .45); A.sil(d);
+      let nd = ""; for (let y = 112; y > haut + 4; y -= 13) nd += `M${pt([x - 1.3, y])}L${pt([x + 1.3, y - .3])}`; A.ink(nd, .45, ENCRE, .75);
+      A.ink(ovale(x, haut + 12, 2.1, .9, -8, 7), .4, ENCRE, .7); A.ink(courbe([[x + 1.8, haut + 12.4], [x + 3.4, haut + 14.6], [x + 2.6, haut + 16]]), .32, ENCRE, .6);
+    }
+    // la liane : segments successifs, de part et d'autre du tuteur (devant, derrière) ; feuilles opposées aux nœuds
+    const H = [0, 0, 40, 58, 70, 86][s], nn = [0, 0, 2, 3, 4, 6][s];
+    const nœuds = [[40, 120]];
+    for (let i = 1; i <= nn; i++) {
+      const y = 120 - H * i / nn, x = tuteur && y < 112 ? tuteur.x + (i % 2 ? 5.5 : -5.5) + (r() - .5) * 1.5 : 40 + (i % 2 ? 1 : -1) * (2.5 + r() * 2) + (s === 3 ? i * 1.6 : 0);
+      nœuds.push([x, y]);
+    }
+    const segs = [];
+    for (let i = 0; i < nn; i++) { A.plan(tuteur && i % 2 ? 0 : 2); segs.push(A.tige(...nœuds[i], ...nœuds[i + 1], { cintre: (i % 2 ? -1 : 1) * 2.4, w0: 1.7 - i * .14, w1: 1.5 - i * .16, libre: !tuteur, penche: i === nn - 1 })); }
+    A.plan(3);
+    segs.forEach((t, i) => {
+      const [x, y] = t.fin, a = t.angFin, len = Math.max(7, (9 + s * .9) * (1 - i * .05));
+      if (i < nn - 1 || s < 3) for (const c of [-1, 1]) pennee(x, y, a + c * (62 + r() * 14), len, s >= 3 ? 2 : 1);
+    });
+    const fin = nœuds[nn];
+    if (s === 2) A.feuille(...fin, segs.at(-1).angFin, 5, 1.8, { o: .4, nerv: 0 });
+    if (s === 3) { const T = segs.at(-1); cyme(...T.fin, T.angFin, 0, 4, 4.2); A.plan(3); pennee(...T.at(.5), T.ang(.5) - 70, 10, 2); }
+    if (s >= 4) {
+      // la pousse de tête dépasse le tuteur et retombe, chargée de fleurs
+      A.plan(2);
+      const dir = r() < .5 ? -1 : 1, B = A.tige(...fin, fin[0] + dir * 18, fin[1] + 1, { cintre: dir * -5, w0: 1.4, w1: .8, libre: false });
+      A.plan(3); pennee(...B.at(.4), B.ang(.4) - dir * 60, 10, 2);
+      cyme(...B.fin, B.angFin - dir * 20, 3, 2, 4.3);
+      cyme(...segs.at(-1).at(.6), segs.at(-1).ang(.6) + (nn % 2 ? 70 : -70), s === 4 ? 2 : 3, 2, 4);
+      if (s >= 5) {
+        cyme(...segs[2].fin, segs[2].angFin + 80, 3, 1, 4);
+        cyme(...segs[3].fin, segs[3].angFin - 80, 2, 2, 3.8);
+        A.plan(2); const C = A.tige(...segs[0].at(.6), 16, 92, { cintre: 6, w0: 1.4, w1: .8 });
+        A.plan(3); pennee(...C.at(.5), C.ang(.5) + 60, 9, 2); cyme(...C.fin, C.angFin - 20, 2, 2, 3.8);
+      }
+    }
+    sol(A, s); finale(A, s, lueur, "papillon", [8, 20, 34, 38]);
+  },
+
+  lotus(A, s, r, lueur) {
+    // Lotus sacré : feuilles rondes peltées (sans échancrure) posées sur l'eau ou dressées en coupe,
+    // grande fleur aux pétales pointus, réceptacle en pomme d'arrosoir criblé d'alvéoles.
+    const eau = w => {
+      A.plan(0);
+      A.lav(ferme([[40 - w, 120.3], [40 - w * .5, 118.6], [40 + w * .5, 118.7], [40 + w, 120.4], [40 + w * .5, 122.8], [40 - w * .5, 122.6]]), EAU, .26);
+      A.plume([[40 - w, 120.2], [40 - w * .6, 119.7], [40 - w * .25, 120.3], [40 - 2, 120]], .3, .8, ENCRE, .7);
+      A.plume([[40 + 3, 120.1], [40 + w * .35, 119.8], [40 + w * .7, 120.4], [40 + w, 120]], .8, .3, ENCRE, .7);
+      if (A.detail) A.ink(courbe([[40 - w * .7, 122], [40 - w * .45, 121.8]]) + courbe([[40 + w * .2, 122.4], [40 + w * .5, 122.1]]) + courbe([[40 - w * .2, 123.2], [40 + w * .05, 123]]), .3, ENCRE, .45);
+    };
+    const tampon = (x, R, sq = .3) => {
+      A.plan(1);
+      const y = 120.2, n = 16, ph = r() * 6, pts = Array.from({ length: n }, (_, i) => { const th = i / n * 2 * Math.PI, m = 1 + .05 * Math.sin(th * 5 + ph); return [x + Math.cos(th) * R * m, y + Math.sin(th) * R * sq * m]; });
+      const d = ferme(pts); A.lav(d, SEVE, .4); A.lav(ferme([pts[0], ...pts.slice(1, 9), [x, y + R * sq * .2]]), SEVE, .2); A.sil(d);
+      A.ink(courbe(pts.slice(0, 10)), .55); A.ink(courbe(pts.slice(11)), .4, ENCRE, .7);
+      if (A.detail && R > 5) { let v = ""; for (let i = 0; i < 9; i++) { const th = (i + .5) / 9 * 2 * Math.PI; v += `M${pt([x + Math.cos(th) * R * .12, y + Math.sin(th) * R * sq * .12])}L${pt([x + Math.cos(th) * R * .8, y + Math.sin(th) * R * sq * .8])}`; } A.ink(v, .25, ENCRE, .45); }
+      A.inkF(point(x, y, .5), ENCRE, .6);
+    };
+    const coupe = (x, y, R, tilt = 0) => {
+      // feuille dressée au-dessus de l'eau, en coupe évasée vue de trois quarts
+      A.plan(2);
+      const sq = .36, n = 16, ph = r() * 6, T = mk(x, y, tilt), rim = Array.from({ length: n }, (_, i) => { const th = i / n * 2 * Math.PI, m = 1 + .05 * Math.sin(th * 6 + ph); return T(Math.cos(th) * R * m, Math.sin(th) * R * sq * m); });
+      const bol = ferme([T(R, 0), T(R * .72, R * .34), T(R * .2, R * .56), T(0, R * .6), T(-R * .3, R * .54), T(-R * .78, R * .3), T(-R, 0)]);
+      const dedans = ferme(rim);
+      A.lav(bol, SEVE, .3); A.lav(bol, REFLET, .25); A.lav(dedans, SEVE, .42); A.sil(bol); A.sil(dedans);
+      A.ink(dedans, .5); A.ink(courbe([T(R, 0), T(R * .72, R * .34), T(R * .2, R * .56), T(0, R * .6), T(-R * .3, R * .54), T(-R * .78, R * .3), T(-R, 0)]), .5);
+      if (A.detail) { let v = ""; for (let i = 0; i < 10; i++) { const th = (i + .3) / 10 * 2 * Math.PI; v += `M${pt(T(0, R * sq * .15))}L${pt(T(Math.cos(th) * R * .85, Math.sin(th) * R * sq * .85))}`; } A.ink(v, .25, ENCRE, .45); }
+      return T(0, R * .6);
+    };
+    const hampe = (x0, x1, y1, o = {}) => {
+      const T = A.tige(x0, 120, x1, y1, { cintre: o.cintre ?? (r() - .5) * 6, w0: o.w0 ?? 1.5, w1: o.w1 ?? 1.1, libre: o.libre });
+      if (A.detail) { let d = ""; for (let i = 0; i < 7; i++) { const u = .12 + i * .11, [x, y] = T.at(u), a = rad(T.ang(u) + (i % 2 ? 70 : -70)); d += `M${pt([x + Math.cos(a) * .9, y + Math.sin(a) * .9])}l${f(Math.cos(a) * .7)} ${f(Math.sin(a) * .7)}`; } A.ink(d, .22, ENCRE, .5); }
+      return T;
+    };
+    const petale = (x, y, a, L, W, c = 0) => {
+      const F = A.feuille(x, y, a, L, W, { profil: PROF.lotus, c: PIG, o: .2, o2: .18, nervure: false, nerv: 0, trait: .48, cambre: c, crochet: false });
+      A.lav(contour(F.up, F.dn), REFLET, .7);
+      const n = F.mid.length - 1, k = Math.round(n * .45);
+      A.lav(contour(F.up.slice(k), F.dn.slice(k)), PIG, .38);
+      if (A.detail && L > 8) { let d = ""; for (const m of [.5, -.5, 0]) d += courbe([.04, .35, .65, .9].map(t => { const q = Math.round(t * n), b = (m > 0 ? F.up : F.dn)[q], c = F.mid[q]; return [c[0] + (b[0] - c[0]) * Math.abs(m) * (1 - t * .3), c[1] + (b[1] - c[1]) * Math.abs(m) * (1 - t * .3)]; })); A.ink(d, .22, PIG, .7); }
+    };
+    const pomme = (cx, cy, R, mur = false) => {
+      // réceptacle en cône renversé : face plane criblée d'alvéoles
+      const top = ovale(cx, cy, R, R * .38, 0, 12), corps = ferme([[cx - R, cy], [cx - R * .7, cy + R * .7], [cx - R * .25, cy + R * 1.15], [cx + R * .25, cy + R * 1.15], [cx + R * .7, cy + R * .7], [cx + R, cy]]);
+      A.lav(corps, mur ? ENCRE : SEVE, mur ? .28 : .42); A.lav(corps, OR, .35); A.lav(top, OR, .55); A.lav(top, SEVE, .25); A.sil(corps); A.sil(top);
+      A.ink(corps, .45); A.ink(top, .45);
+      let al = ""; for (const [u, v] of [[0, 0], [-.5, -.05], [.5, .05], [-.22, -.55], [.26, -.55], [-.25, .55], [.25, .55]]) al += point(cx + u * R, cy + v * R * .38, R * .085);
+      A.inkF(al, ENCRE, mur ? .8 : .6);
+    };
+    const fleur = (cx, cy, R, plan = 3) => {
+      // cy : base de la corolle ; pétales du fond (coupe dressée), réceptacle et étamines, pétales de devant évasés
+      const depart = a => [cx + Math.cos(rad(a)) * R * .12, cy + Math.sin(rad(a)) * R * .06];
+      A.plan(plan);
+      for (const [a, l, c] of [[-150, .92, .1], [-124, 1.08, .06], [-101, 1.16, .02], [-79, 1.14, -.02], [-56, 1.06, -.06], [-30, .92, -.1]]) { const aa = a + (r() - .5) * 6; petale(...depart(aa), aa, R * l, R * .34, c); }
+      A.plan(plan + 1);
+      const ry = cy - R * .5, rr = R * .33; let st = "", tips = "";
+      for (let i = 0; i < 16; i++) { const th = rad(-195 + i * 210 / 15), p0 = [cx + Math.cos(th) * rr * .6, ry + rr * .75], p1 = [cx + Math.cos(th) * R * .52, ry + rr * .2 + Math.sin(th) * R * .14]; st += `M${pt(p0)}L${pt(p1)}`; tips += point(...p1, R * .03); }
+      A.ink(st, .3, OR, .95); A.inkF(tips, OR, 1);
+      pomme(cx, ry, rr);
+      A.plan(plan + 2);
+      for (const [a, l, c] of [[-176, .9, .16], [-150, .78, .12], [-121, .46, .04], [-59, .46, -.04], [-30, .78, -.12], [-4, .9, -.16]]) { const aa = a + (r() - .5) * 5; petale(...depart(aa), aa, R * l, R * (l < .6 ? .28 : .34), c); }
+      A.lav(ovale(cx, cy + R * .08, R * .12, R * .08), SEVE, .5);
+    };
+    const bouton = (x, y, a, L) => {
+      A.plan(3);
+      const F = A.feuille(x, y, a, L, L * .36, { profil: PROF.bouton, c: PIG, o: .4, o2: .3, nervure: false, cambre: 0, trait: .5, reserve: true });
+      const T = mk(x, y, a); A.ink(courbe([T(L * .08, -L * .1), T(L * .55, -L * .3), T(L * .98, 0)]) + courbe([T(L * .08, L * .1), T(L * .6, L * .28), T(L * .98, 0)]), .32, ENCRE, .7);
+      void F;
+    };
+    if (s === 1) {
+      eau(12); tampon(52, 5.6);
+      A.plan(0); const T = hampe(38, 37, 104, { cintre: 2, w0: 1.3, w1: 1 });
+      A.plan(2); A.feuille(...T.fin, -84, 9, 2, { profil: PROF.lanceole, o: .42, o2: .3, nervure: false, nerv: 0, cambre: .2, crochet: true });
+      A.ink(courbe([mk(...T.fin, -84)(2, 1.4), mk(...T.fin, -84)(6, 1.6)]), .3, ENCRE, .6);
+      return;
+    }
+    const C = {
+      2: { tampons: [[25, 8.5], [55, 6.5]], coupes: [[44, 22, 7]] },
+      3: { tampons: [[22, 9], [57, 7.5]], coupes: [[30, 38, 9.5], [52, 30, 8]], bouton: [41, 54, 12] },
+      4: { tampons: [[18, 9.5], [60, 8.5], [36, 6]], coupes: [[22, 42, 10.5], [58, 34, 9.5]], fleur: [42, 66, 14.5], bouton: [54, 50, 11] },
+      5: { tampons: [[14, 10], [64, 9.5], [34, 6.5], [50, 6]], coupes: [[16, 50, 11], [64, 42, 10.5], [30, 30, 8.5]], fleur: [40, 82, 17], bouton: [58, 62, 11], pomme: [24, 66] },
+    }[s];
+    eau(14 + s * 4.5);
+    for (const [x, R] of C.tampons) tampon(x + (r() - .5) * 3, R);
+    for (const [x, H, R] of C.coupes) { A.plan(0); const tilt = (x - 40) * .25 + (r() - .5) * 8, bas = [x + (r() - .5) * 2, 120 - H + R * .6]; hampe(40 + (x - 40) * .15, bas[0], bas[1], { cintre: (x - 40) * -.12, libre: false }); coupe(bas[0], bas[1] - R * .6, R, tilt); }
+    if (C.bouton) { const [x, H, L] = C.bouton; A.plan(0); const T = hampe(40 + (x - 40) * .1, x, 120 - H + L, { w0: 1.6, w1: 1.2, libre: false }); bouton(...T.fin, T.angFin, L); }
+    if (C.pomme) { const [x, H] = C.pomme; A.plan(0); const T = hampe(39, x, 120 - H, { cintre: 5, w0: 1.4, w1: 1, libre: false }); A.plan(3); pomme(T.fin[0], T.fin[1] - 2.6, 4.6, true); }
+    if (C.fleur) { const [x, H, R] = C.fleur; A.plan(0); const T = hampe(40, x, 120 - H + R * .1, { w0: 2, w1: 1.4, libre: false }); fleur(T.fin[0], T.fin[1], R, 4); }
+    A.plan(0); finale(A, s, lueur, "lucioles", [54, 12, 76, 40]);
   },
 };
 

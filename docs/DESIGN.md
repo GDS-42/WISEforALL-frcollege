@@ -44,8 +44,16 @@ encre crème ; les composants n'ont donc jamais de couleur codée en dur.
 Français vermillon `#c4553d` · Maths indigo `#3d5a99` · Histoire terre de Sienne `#a35d32` ·
 Géographie vert sauge `#5f8a6e` · EMC prune `#7d4f73` · SVT vert mousse `#5a8a3a` ·
 Physique-chimie cuivre `#b86f32` · Technologie ardoise `#56707e` · Anglais garance `#a83e48` ·
-Espagnol safran `#cc8a24` · Arts plastiques fuchsia `#b04a82` · Musique bleu canard `#2c7b80` ·
+Espagnol safran `#cc8a24` · Allemand bleu de Prusse `#3a8ac6` · Arabe violet de cobalt `#a07cc0` ·
+Chinois rose lotus `#e0788c` · Arts plastiques fuchsia `#b04a82` · Musique bleu canard `#2c7b80` ·
 EPS orange brûlé `#d06a2c`.
+
+Les quatre LV2 (espagnol, allemand, arabe, chinois) ne sont jamais visibles ensemble : une seule est suivie
+par profil. Chacune doit donc seulement se distinguer des douze autres matières du jardin ; les trois
+nouvelles occupent les teintes encore libres (bleu clair, violet, rose clair), avec un écart CIEDE2000
+d'au moins 16 avec la matière la plus proche (allemand/technologie 16, arabe/arts plastiques 18,5,
+chinois/arts plastiques 18), soit plus que les paires existantes les plus proches (physique-chimie/EPS 6).
+Plantes associées : edelweiss (allemand), jasmin (arabe), lotus (chinois).
 
 ## Dans les SVG
 

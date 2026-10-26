@@ -344,7 +344,7 @@ export function decoration(id) {
 }
 
 // ───────────────────────── emblèmes (ex-libris) ─────────────────────────
-const PIGMENTS = { francais: "#c4553d", maths: "#3d5a99", histoire: "#a35d32", geographie: "#5f8a6e", emc: "#7d4f73", svt: "#5a8a3a", "physique-chimie": "#b86f32", technologie: "#56707e", anglais: "#a83e48", espagnol: "#cc8a24", "arts-plastiques": "#b04a82", "education-musicale": "#2c7b80", eps: "#d06a2c" };
+const PIGMENTS = { francais: "#c4553d", maths: "#3d5a99", histoire: "#a35d32", geographie: "#5f8a6e", emc: "#7d4f73", svt: "#5a8a3a", "physique-chimie": "#b86f32", technologie: "#56707e", anglais: "#a83e48", espagnol: "#cc8a24", allemand: "#3a8ac6", arabe: "#a07cc0", chinois: "#e0788c", "arts-plastiques": "#b04a82", "education-musicale": "#2c7b80", eps: "#d06a2c" };
 
 const MOTIFS = {
   francais(A, P) {
@@ -417,6 +417,47 @@ const MOTIFS = {
     A.ink("M30 70L48 70", 1.8).plume([[42, 50], [52, 40], [62, 30], [72, 20]], 4.6, 3.6);
     const tete = "M70 22L78 12L84 16L76 26Z"; A.lav(tete, ENCRE, .45).ink(tete, 1.8).fill(point(76, 13.6, 1.1) + point(80, 18, 1.1), ENCRE, .9);
     A.ink("M32 68L71 23M34 70L73 25", .6, .55);
+  },
+  allemand(A, P) {
+    // la porte de Brandebourg : six colonnes, attique, quadrige ; le ciel au pigment à travers les passages
+    const cols = [20, 31.5, 43, 57, 68.5, 80];
+    for (let k = 0; k < 5; k++) { const x0 = cols[k] + 2.6, x1 = cols[k + 1] - 2.6, d = `M${f(x0)} 45L${f(x1)} 45L${f(x1)} 76L${f(x0)} 76Z`; A.lav(d, P, k === 2 ? .7 : .5); }
+    let fut = "", col = "";
+    for (const x of cols) { col += `M${f(x - 2.6)} 45L${f(x - 2.6)} 76M${f(x + 2.6)} 45L${f(x + 2.6)} 76`; fut += `M${x} 47L${x} 74`; A.lav(`M${x} 45L${f(x + 2.6)} 45L${f(x + 2.6)} 76L${x} 76Z`, ENCRE, .14); }
+    A.ink(col, 1.8).ink(fut, .7, .6);
+    const ent = "M15 38L85 38L85 45L15 45Z", att = "M30 30L70 30L70 38L30 38Z", marches = "M22 38L22 34.5L30 34.5M78 38L78 34.5L70 34.5";
+    A.lav(ent, ENCRE, .12).lav(att, ENCRE, .12).ink(ent, 2).ink(att, 2).ink(marches, 1.8).ink("M15 41.5L85 41.5", .7, .6);
+    A.ink("M14 76L86 76M12 80L88 80", 2.2).ink("M14 76L12 80M86 76L88 80", 1.4, .8);
+    // quadrige : quatre encolures, le char et la Victoire à l'enseigne
+    A.ink("M38 30Q38 25 41 24.4M44 30Q44 24.6 47 24M56 30Q56 24.6 53 24M62 30Q62 25 59 24.4", 1.6, .9);
+    A.lav("M46 30L54 30L53 26L47 26Z", P, .6).ink("M46 30L54 30L53 26L47 26Z", 1.3);
+    A.ink("M50 26L50 18.6M50 21.4L46.6 23.6M50 21.4L53.6 19.6L55 12", 1.4).fill(point(50, 17.6, 1.6)).ink(ovale(55.2, 11, 2, 2, 0, 8), 1.1, .9);
+  },
+  arabe(A, P) {
+    // un fanous : lanterne ajourée, verres colorés et étoile géométrique à huit branches
+    A.lav(ovale(50, 50, 26, 30, 0, 14), OR, .22);
+    A.ink(ovale(50, 10, 3.4, 3.4, 0, 8), 1.8).ink("M50 13.4L50 19", 1.6);
+    const dome = "M38 30Q38 19 50 18Q62 19 62 30Z";
+    A.lav(dome, ENCRE, .35).ink(dome, 2.2).ink("M44 25Q50 22 56 25", 1, .7);
+    const corps = "M36 30L64 30L71 47L64 66L36 66L29 47Z";
+    A.lav(corps, P, .55).lav("M50 30L64 30L71 47L64 66L50 66Z", ENCRE, .15).lav(ovale(50, 47, 9, 11, 0, 10), OR, .55).ink(corps, 2.3);
+    A.ink("M43 30L41 47L43 66M57 30L59 47L57 66M29 47L71 47", 1.1, .7);
+    const carre = (r, a) => { const p = [0, 1, 2, 3].map(i => { const t = (a + i * 90) * Math.PI / 180; return `${f(50 + Math.cos(t) * r)} ${f(47 + Math.sin(t) * r)}`; }); return `M${p.join("L")}Z`; };
+    A.ink(carre(7, 0) + carre(7, 45), 1.2, .9).fill(point(50, 47, 1.6), ENCRE, .8);
+    let ar = ""; for (const x of [39, 46, 53, 60]) ar += `M${x - 3} 34Q${x} 30.6 ${x + 3} 34`; A.ink(ar, .9, .7);
+    const pied = "M36 66L64 66L56 74L44 74Z";
+    A.lav(pied, ENCRE, .35).ink(pied, 2.2).ink("M50 74L50 82", 1.8).fill(point(50, 84, 2.4));
+    A.reserve("M34 44L38 34", .7);
+  },
+  chinois(A, P) {
+    // une lanterne de papier : côtes de bambou, coiffes laquées, gland de soie
+    A.ink("M50 8L50 24", 1.6).ink("M44 8L56 8", 2);
+    const corps = ovale(50, 49, 27, 21, 0, 16);
+    A.lav(corps, P, .6).lav("M50 28Q77 28 77 49Q77 70 50 70Z", ENCRE, .15).ink(corps, 2.4);
+    A.ink("M42 28.6Q31 36 31 49Q31 62 42 69.4M58 28.6Q69 36 69 49Q69 62 58 69.4M50 28L50 70", 1, .65);
+    for (const y of [24, 70]) { const c = `M39 ${y}L61 ${y}L61 ${y + 5}L39 ${y + 5}Z`; A.lav(c, ENCRE, .45).lav(c, OR, .35).ink(c, 1.8); }
+    A.ink("M50 75L50 80", 1.6).fill(ovale(50, 81.5, 2.6, 2, 0, 8)).ink("M47 83L46 93M50 83.5L50 94M53 83L54 93", 1.4, .85, P).ink("M47 83L46 93M50 83.5L50 94M53 83L54 93", .6, .7);
+    A.reserve("M30 42Q32 34 40 31", .75);
   },
   "arts-plastiques"(A, P) {
     const pal = "M50 22Q76 22 80 44Q82 60 66 60Q58 60 60 70Q62 80 46 80Q22 78 20 54Q18 26 50 22Z";

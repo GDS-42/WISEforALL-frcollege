@@ -52,7 +52,7 @@
   import { plante, plantePetite, NOMS_STADES } from "../src/plants.js";
   import { MATIERES } from "../content/matieres.js";
   injecterDefs();
-  const PIGMENTS = { francais: "#c4553d", maths: "#3d5a99", histoire: "#a35d32", geographie: "#5f8a6e", emc: "#7d4f73", svt: "#5a8a3a", "physique-chimie": "#b86f32", technologie: "#56707e", anglais: "#a83e48", espagnol: "#cc8a24", "arts-plastiques": "#b04a82", "education-musicale": "#2c7b80", eps: "#d06a2c" };
+  const PIGMENTS = { francais: "#c4553d", maths: "#3d5a99", histoire: "#a35d32", geographie: "#5f8a6e", emc: "#7d4f73", svt: "#5a8a3a", "physique-chimie": "#b86f32", technologie: "#56707e", anglais: "#a83e48", espagnol: "#cc8a24", allemand: "#3a8ac6", arabe: "#a07cc0", chinois: "#e0788c", "arts-plastiques": "#b04a82", "education-musicale": "#2c7b80", eps: "#d06a2c" };
   const NS = "http://www.w3.org/2000/svg";
   const el = (t, a = {}, ...e) => { const n = document.createElement(t); for (const [k, v] of Object.entries(a)) n.setAttribute(k, v); n.append(...e); return n; };
   const ils = await import("../src/ui/illustrations.js").catch(err => { console.warn("illustrations.js absent", err.message); return null; });
@@ -62,7 +62,7 @@
     const T = el("section", { class: "theme", "data-theme": theme });
     T.append(el("h1", {}, `Herbier d'ÉCLORE — ${theme}`), el("p", { class: "note" }, "planche de démonstration : espèces, stades, soif, petites tailles, Lume, paysages, décor, emblèmes"));
     if (!seulement || seulement === "plantes") {
-      T.append(el("h2", {}, "Les treize espèces, six stades"));
+      T.append(el("h2", {}, "Les seize espèces, six stades"));
       const G = el("div", { class: "grille-plantes" });
       G.append(el("span"), ...NOMS_STADES.map(n => el("span", { class: "ent" }, n)));
       for (const [id, m] of Object.entries(MATIERES)) {
@@ -80,12 +80,25 @@
         v.append(plante({ forme: m.plante, stade: 2 + (id.length % 4), graine: id, soif: true }));
         f.append(v, el("figcaption", {}, "assoiffée")); R.append(f);
       }
+      for (const id of ["allemand", "arabe", "chinois"]) for (const s of [3, 5]) {
+        const m = MATIERES[id], f = el("figure", { style: `--pigment:${PIGMENTS[id]}` });
+        const v = document.createElementNS(NS, "svg"); v.setAttribute("viewBox", "0 0 80 120"); v.setAttribute("width", 80); v.setAttribute("height", 120); v.setAttribute("overflow", "visible");
+        v.append(plante({ forme: m.plante, stade: s, graine: id, soif: true }));
+        f.append(v, el("figcaption", {}, "assoiffée")); R.append(f);
+      }
       for (const g of ["a", "b", "c"]) { const f = el("figure", { style: `--pigment:${PIGMENTS.francais}` }); const v = document.createElementNS(NS, "svg"); v.setAttribute("viewBox", "0 0 80 120"); v.setAttribute("width", 80); v.setAttribute("height", 120); v.append(plante({ forme: "rose", stade: 4, graine: g })); f.append(v, el("figcaption", {}, `graine ${g}`)); R.append(f); }
       T.append(R);
       T.append(el("h2", {}, "Lisibilité à 40 px (plantePetite)"));
       const P = el("div", { class: "petites" });
       for (const [id, m] of Object.entries(MATIERES)) for (const s of [0, 3, 5]) P.append(plantePetite({ forme: m.plante, couleur: PIGMENTS[id], stade: s, graine: id }, 40));
       T.append(P);
+      T.append(el("h2", {}, "LV2 (allemand, arabe, chinois) : six stades cadrés à 40 px et 120 px"));
+      for (const id of ["allemand", "arabe", "chinois"]) {
+        const L40 = el("div", { class: "petites", style: "margin-top:6px" }), L120 = el("div", { class: "petites" });
+        for (let s = 0; s < 6; s++) L40.append(plantePetite({ forme: MATIERES[id].plante, couleur: PIGMENTS[id], stade: s, graine: id }, 40, { cadre: true }));
+        for (let s = 0; s < 6; s++) L120.append(plantePetite({ forme: MATIERES[id].plante, couleur: PIGMENTS[id], stade: s, graine: id }, 120, { cadre: "sol" }));
+        T.append(L40, L120);
+      }
     }
     if (ils && (!seulement || seulement === "illus")) {
       T.append(el("h2", {}, "Lume, la luciole mentor"));
