@@ -1,7 +1,7 @@
 // ÉCLORE — Moteur pédagogique : construction des sessions, enregistrement des réponses, maîtrise.
 import { reviser, memoireActuelle, noteDepuisReponse, stade, NOTES } from "./scheduler.js";
 import { majElo, forceItem, pertinence, ELO_DEPART, probaReussite } from "./adapt.js";
-import { cleJour } from "./store.js";
+import { cleJour, noterJournee } from "./store.js";
 import { verifierSucces } from "./succes.js";
 
 const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
@@ -39,6 +39,13 @@ export function itemsFragiles(items, etat, maintenant = Date.now()) {
     .map(x => x.it);
 }
 
+/** Déjà rencontrées, mais ratées la dernière fois ou jamais réussies : à retravailler (les plus anciennes d'abord). */
+export function itemsARevoir(items, etat) {
+  return items
+    .filter(it => { const e = etat.items[it.id]; return e?.s && (e.derniereNote === NOTES.ENCORE || !e.ok); })
+    .sort((a, b) => (etat.items[a.id].last || 0) - (etat.items[b.id].last || 0));
+}
+
 /** Choisit des items jamais vus dans la zone de confort productif, en couvrant les compétences à tour de rôle. */
 export function choisirNouveaux(items, etat, n) {
   const nouveaux = items.filter(it => !etat.items[it.id]?.s);
@@ -56,7 +63,8 @@ export function choisirNouveaux(items, etat, n) {
 
 /**
  * Construit une session.
- * type : "decouvrir" (un chapitre) | "arroser" (révisions dues, tout le niveau) | "defi" (mélange chronométré) | "diagnostic" (une matière)
+ * type : "decouvrir" (un chapitre) | "libre" (un chapitre, questions déjà vues) | "arroser" (révisions dues, tout le niveau)
+ *        | "defi" (mélange chronométré) | "diagnostic" (une matière)
  */
 export function construireSession({ type, etat, chapitre = null, modules = [], n = 12, maintenant = Date.now() }) {
   const tousItems = modules.flatMap(m => m.chapitres.flatMap(c => c.items));
@@ -69,16 +77,21 @@ export function construireSession({ type, etat, chapitre = null, modules = [], n
     const nouveaux = choisirNouveaux(chapitre.items, etat, budget);
     budget -= nouveaux.length;
     const vus = new Set([...dus, ...nouveaux].map(i => i.id));
-    // S'il n'y a plus de nouveautés, on consolide les items les plus fragiles du chapitre.
+    // Les questions ratées ou jamais réussies reviennent d'abord, même avant leur échéance.
+    const aRevoir = itemsARevoir(chapitre.items, etat).filter(i => !vus.has(i.id)).slice(0, budget);
+    aRevoir.forEach(i => vus.add(i.id));
+    budget -= aRevoir.length;
+    // Puis les plus fragiles. Pas de remplissage avec des questions déjà réussies : les revoir trop tôt
+    // n'aide presque pas à retenir (effet d'espacement) ; l'écran le dit et propose un entraînement libre.
     const consolidation = itemsFragiles(chapitre.items, etat, maintenant).filter(i => !vus.has(i.id)).slice(0, budget);
-    consolidation.forEach(i => vus.add(i.id));
-    budget -= consolidation.length;
-    // Chapitre épuisé : on complète avec des items déjà vus (rappel) plutôt que rien.
-    const complement = budget > 0 ? melanger(chapitre.items.filter(i => !vus.has(i.id) && etat.items[i.id]?.s)).slice(0, budget) : [];
     // Réactiver d'abord (révisions), puis découvrir, en entrelaçant pour soutenir l'attention.
-    const revisions = [...dus, ...ailleurs];
-    const decouvertes = [...nouveaux, ...consolidation, ...complement];
-    liste = entrelacer([decouvertes, revisions]);
+    const decouvertes = [...nouveaux, ...aRevoir, ...consolidation];
+    liste = dus.length || decouvertes.length ? entrelacer([decouvertes, [...dus, ...ailleurs]]) : [];
+  } else if (type === "libre" && chapitre) {
+    // Entraînement libre, à la demande : questions déjà vues, pas encore réussies d'abord, puis les moins stables.
+    const vues = chapitre.items.filter(i => etat.items[i.id]?.s);
+    const aRevoir = new Set(itemsARevoir(vues, etat).map(i => i.id));
+    liste = melanger(vues).sort((a, b) => (aRevoir.has(b.id) - aRevoir.has(a.id)) || (etat.items[a.id].s - etat.items[b.id].s)).slice(0, n);
   } else if (type === "arroser") {
     const dus = itemsDus(tousItems, etat, maintenant)
       .map(it => ({ it, R: memoireActuelle(etat.items[it.id], maintenant) }))
@@ -126,6 +139,7 @@ export function enregistrerReponse(store, item, { juste, score = juste ? 1 : 0, 
     const conf = stats.conf ? stats.conf.slice() : [[0, 0], [0, 0], [0, 0]]; // par niveau de confiance : [réponses, justes]
     if (!autoNote && confiance >= 1 && confiance <= 3) { conf[confiance - 1][0]++; if (juste) conf[confiance - 1][1]++; }
     e.items[item.id] = { ...prochain, n: (stats.n || 0) + 1, ok: (stats.ok || 0) + (juste ? 1 : 0), conf, tempsMs: (stats.tempsMs || 0) + (dureeMs || 0), derniereNote: note };
+    noterJournee(e, item.chapitre || item.id.slice(0, item.id.lastIndexOf("-")), maintenant); // journées travaillées (épreuve)
     if (!rattrapage) {
       e.comp[item.competence] = majElo(e.comp[item.competence], juste, forceItem(item, prev));
       const j = cleJour(new Date(maintenant));
@@ -165,16 +179,20 @@ export function cloreSession(store, session, maintenant = Date.now()) {
   return nouveaux;
 }
 
+/** Horizon de stabilité (jours) au-delà duquel une question compte pleinement : une révision dans trois semaines ou plus. */
+export const HORIZON_MAITRISE = 21;
+
+/** Part d'une question dans la maîtrise (0..1) : mémoire actuelle × durabilité (plancher 0,3 dès la première réussite). */
+export function contribution(e, maintenant = Date.now()) {
+  if (!e || !e.s) return 0;
+  return memoireActuelle(e, maintenant) * clamp(e.s / HORIZON_MAITRISE, 0.3, 1);
+}
+
 /** Maîtrise d'un ensemble d'items (0..1) : mémoire actuelle pondérée par la stabilité acquise. */
 export function maitrise(items, etat, maintenant = Date.now()) {
   if (!items.length) return 0;
   let total = 0;
-  for (const it of items) {
-    const e = etat.items[it.id];
-    if (!e || !e.s) continue;
-    const R = memoireActuelle(e, maintenant);
-    total += R * clamp(e.s / 21, 0.3, 1);
-  }
+  for (const it of items) total += contribution(etat.items[it.id], maintenant);
   return total / items.length;
 }
 

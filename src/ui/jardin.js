@@ -7,7 +7,8 @@ import { plante } from "../plants.js";
 import { lume, paysage, decoration } from "./illustrations.js";
 import { salut, citationDuJour } from "../mentor.js";
 import { cleJour } from "../store.js";
-import { quetesDuJour, reclamerQuete, niveauDepuisXp, verifierNiveau, CATALOGUE } from "../gamification.js";
+import { quetesDuJour, reclamerQuete, niveauDepuisXp, verifierNiveau, CATALOGUE, verifierPlanches, epreuveDisponible } from "../gamification.js";
+import { notifier } from "./chapitre.js";
 import { sons } from "../audio.js";
 import { sauvegardeConseillee } from "../sauvegarde.js";
 import { boutonsExport, ilYa } from "./sauvegarde.js";
@@ -68,8 +69,12 @@ export async function ecranJardin(main, params, app) {
   const jour = e.jours[cleJour()] || { n: 0 };
   const objectif = e.prefs.objectifItems || 15;
   const [cit, auteur] = citationDuJour();
-  let quetes = [];
-  app.store.maj(x => { quetes = quetesDuJour(x, Date.now(), { matieres: modules.length }); });
+  let quetes = [], nouvelles = [];
+  // Des planches peuvent se colorier avec le temps (garde-fous en journées) : on les enregistre avant les quêtes.
+  app.store.maj(x => { nouvelles = verifierPlanches(x, modules.flatMap(m => m.chapitres)); quetes = quetesDuJour(x, Date.now(), { matieres: modules.length }); });
+  notifier({ notifications: nouvelles.map(id => ({ type: "planche", chapitre: id, etat: "coloriee" })) });
+  // Épreuves ouvertes (planche coloriée la veille ou avant, pas encore dorée) : on les annonce dans le rituel.
+  const pretes = modules.flatMap(m => m.chapitres).filter(c => !e.gamif.herbier[c.id]?.doree && epreuveDisponible(e, c));
   const niv = niveauDepuisXp(e.gamif.xp);
 
   const texteLume = dus > 0
@@ -88,6 +93,9 @@ export async function ecranJardin(main, params, app) {
       h("div", { class: "anneau", style: { "--p": Math.min(100, Math.round(jour.n / objectif * 100)) }, role: "img", "aria-label": `${jour.n} questions sur ${objectif} aujourd'hui` }, h("span", {}, `${Math.min(jour.n, 999)}`)),
       h("div", {}, h("p", { class: "date-main" }, new Date().toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })), h("h2", { style: { margin: 0 } }, "Le rituel du jour"), h("span", { class: "tres-muet" }, jour.n >= objectif ? "Objectif atteint. Tout le reste est du bonus." : `${objectif - jour.n} questions pour atteindre ton objectif`))),
     h("div", { class: "actions" },
+      pretes.length ? h("a", { class: "action prioritaire epreuve-prete", href: `#/chapitre/${pretes[0].id}/epreuve`, style: { "--pigment": "#b8902f" } },
+        icone("epreuve"), h("strong", {}, pretes.length > 1 ? `${pretes.length} épreuves prêtes` : "Épreuve prête"),
+        h("span", { class: "desc" }, `« ${pretes[0].titre} » : ta planche peut se dorer. Passe l'épreuve avant d'arroser.`)) : null,
       action("#/session/arroser", "goutte", "Arroser", dus ? "Les révisions du jour, toutes matières mêlées." : "Consolider ce qui est fragile.", { prioritaire: dus > 0, pastille: dus || null, pigment: "#2c7b80" }),
       action("#/atlas", "graine", "Découvrir", "Lire un cours et planter de nouvelles graines.", { prioritaire: dus === 0, pigment: "#5a8a3a" }),
       action("#/session/defi", "eclair", "Défi éclair", "Dix questions mêlées, chronométrées.", { pigment: "#cc8a24" }),

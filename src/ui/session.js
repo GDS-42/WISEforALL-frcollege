@@ -15,12 +15,12 @@ import { notifier } from "./chapitre.js";
 import { modulesVisibles } from "./jardin.js";
 
 const TYPES_LIB = { qcm: "Choisis", vf: "Vrai ou faux", trous: "Complète", ordre: "Remets dans l'ordre", assoc: "Associe", num: "Calcule", texte: "Réponds", flash: "Carte mémoire" };
-const TITRES = { decouvrir: "Découvrir", arroser: "Arroser", defi: "Défi éclair", diagnostic: "Où en suis-je ?", epreuve: "Épreuve" };
+const TITRES = { decouvrir: "Découvrir", libre: "Entraînement libre", arroser: "Arroser", defi: "Défi éclair", diagnostic: "Où en suis-je ?", epreuve: "Épreuve" };
 
 export async function ecranSession(main, [type, param], app) {
   const e = app.etat;
   let chapitre = null, modules = [], session;
-  if (type === "decouvrir" || type === "epreuve") {
+  if (type === "decouvrir" || type === "libre" || type === "epreuve") {
     chapitre = await trouverChapitre(param);
     if (!chapitre) { poser(main, h("p", {}, "Chapitre introuvable.")); return; }
     modules = await chargerNiveau(chapitre.niveau);
@@ -34,7 +34,7 @@ export async function ecranSession(main, [type, param], app) {
     const n = type === "defi" ? 10 : type === "diagnostic" ? 14 : Math.max(8, Math.min(16, e.prefs.objectifItems || 12));
     session = construireSession({ type, etat: e, chapitre, modules, n });
   }
-  if (!session.items.length) { poser(main, seanceVide(type, modules, e)); return; }
+  if (!session.items.length) { poser(main, seanceVide(type, modules, e, chapitre)); return; }
   const stadesAvant = {};
   for (const it of session.items) stadesAvant[it.id] = stade(e.items[it.id]);
   const ctx = { app, session, type, chapitre, modules, index: 0, file: session.items.slice(), rattrapes: new Set(), stadesAvant, serie: 0, meilleure: 0, xpAvant: e.gamif.xp, niveauAvant: niveauDepuisXp(e.gamif.xp), lumensAvant: e.lumens, resultats: [] };
@@ -379,12 +379,19 @@ function afficherFin(ctx) {
   const quetes = quetesDuJour(e);
   let titre = taux >= 0.8 ? "Belle séance." : taux >= 0.5 ? "Bonne séance." : "Séance exigeante. Bravo d'être resté.";
   if (type === "epreuve") titre = taux >= 0.8 ? "Épreuve réussie !" : "Pas encore cette fois.";
+  // Épreuve manquée : les compétences où il y a eu des erreurs, pour savoir quoi revoir d'ici demain.
+  const competencesARevoir = type === "epreuve" && taux < 0.8
+    ? [...new Set(reps.filter(r => !r.juste).map(r => session.items.find(i => i.id === r.id)?.competence))]
+      .map(id => ctx.chapitre?.competences?.find(c => c.id === id)?.libelle).filter(Boolean)
+    : [];
 
   remplacer(zone, h("div", { class: "feuillet fin-seance" },
     h("p", { class: "etiquette" }, TITRES[type] || "Séance"),
     h("h2", {}, titre),
     h("div", { class: "score" }, h("span", { class: "grand" }, String(ok)), h("span", { class: "sur" }, `/ ${n}`)),
-    type === "epreuve" ? h("p", { class: "muet" }, taux >= 0.8 ? "La planche de ce chapitre se pare d'or dans ton herbier." : "Il faut au moins 8 bonnes réponses sur 10. Révise encore un peu : tu peux retenter quand tu veux.") : null,
+    type === "epreuve" ? h("p", { class: "muet" }, taux >= 0.8 ? "La planche de ce chapitre se pare d'or dans ton herbier."
+      : "Il faut au moins 8 bonnes réponses sur 10. Tu pourras retenter l'épreuve dès demain : une nuit de sommeil aide ta mémoire à consolider ce que tu viens de revoir.") : null,
+    competencesARevoir.length ? h("div", { class: "a-revoir" }, h("p", { class: "etiquette" }, "À revoir d'ici demain"), h("ul", {}, competencesARevoir.map(l => h("li", {}, l)))) : null,
     h("div", { class: "plantes-fin", "aria-hidden": "true" }, pousses.slice(0, 10).map((p, i) => { const info = MATIERES[p.it.matiere]; const s = plantePetite({ forme: info.plante, couleur: info.couleur, stade: p.apres, graine: p.it.id + e.profil.graine }, 64, { cadre: "sol" }); s.classList.add("pousse-fin"); s.style.setProperty("--i", i); return s; })),
     h("div", { class: "bilan-chiffres" },
       h("div", {}, h("b", {}, String(grandi)), h("span", {}, grandi > 1 ? "plantes ont grandi" : "plante a grandi")),
@@ -396,7 +403,7 @@ function afficherFin(ctx) {
     quetes.length ? h("div", { class: "quetes-fin" }, quetes.map(q => h("span", { class: `puce ${q.progres >= q.objectif ? "encre" : ""}` }, q.progres >= q.objectif ? icone("valider") : null, `${q.libelle} · ${Math.min(q.progres, q.objectif)}/${q.objectif}`))) : null,
     h("div", { class: "rang centre", style: { marginTop: "1.2rem" } },
       type === "epreuve" ? h("a", { class: "btn", href: `#/chapitre/${ctx.chapitre.id}/epreuve` }, "Retour à l'épreuve")
-        : ctx.chapitre ? encore(ctx.app, `#/session/decouvrir/${ctx.chapitre.id}`)
+        : ctx.chapitre ? encore(ctx.app, `#/session/${type === "libre" ? "libre" : "decouvrir"}/${ctx.chapitre.id}`)
         : encore(ctx.app, `#/session/${type}${ctx.modules.length === 1 && type !== "defi" ? "/" + ctx.modules[0].id : ""}`),
       ctx.chapitre ? h("a", { class: "btn", href: `#/chapitre/${ctx.chapitre.id}` }, "Retour au chapitre") : null,
       h("a", { class: "btn", href: "#/jardin" }, icone("jardin"), "Au jardin")),
@@ -414,8 +421,9 @@ function encore(app, href) {
 }
 
 /** Séance sans question (tout est arrosé, ou plus rien de neuf) : on le dit et on propose la suite. */
-function seanceVide(type, modules, e) {
-  const items = modules.flatMap(m => m.chapitres.flatMap(c => c.items));
+function seanceVide(type, modules, e, chapitre = null) {
+  // Pour un chapitre, la prochaine révision utile se calcule sur ses seules questions.
+  const items = chapitre ? chapitre.items : modules.flatMap(m => m.chapitres.flatMap(c => c.items));
   const maintenant = Date.now();
   const prochaine = items.map(it => e.items[it.id]?.due).filter(d => Number.isFinite(d) && d > maintenant).sort((a, b) => a - b)[0];
   const quand = !prochaine ? null : prochaine - maintenant < 3600000 ? "dans moins d'une heure"
@@ -423,6 +431,18 @@ function seanceVide(type, modules, e) {
     : new Date(prochaine).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" }).replace(/^/, "le ");
   const arroser = type === "arroser";
   const mini = lume({ humeur: "joie" }); mini.classList.add("lume");
+  if (chapitre && type === "decouvrir") {
+    return h("div", { class: "seance" }, h("div", { class: "feuillet fin-seance seance-vide" },
+      h("p", { class: "etiquette" }, "Découvrir"),
+      mini,
+      h("h2", {}, "Tout ce chapitre est réussi pour l'instant"),
+      h("p", { class: "muet" }, `Tu as rencontré et réussi toutes ses questions. Pour que ta planche grandisse, laisse travailler ta mémoire : ${quand ? `la prochaine révision utile arrive ${quand}` : "les prochaines révisions viendront au fil des jours"}. Revoir trop tôt une question déjà réussie n'aide presque pas à la retenir ; c'est un peu d'oubli, puis un rappel réussi, qui l'enracine.`),
+      h("div", { class: "rang", style: { justifyContent: "center", marginTop: "1rem" } },
+        h("a", { class: "btn encre", href: `#/chapitre/${chapitre.id}` }, icone("retour"), "Retour au chapitre"),
+        h("a", { class: "btn", href: `#/session/libre/${chapitre.id}` }, icone("recommencer"), "S'entraîner quand même"),
+        h("a", { class: "btn discret", href: "#/atlas" }, icone("graine"), "Découvrir un autre chapitre")),
+      h("p", { class: "tres-muet petit", style: { marginTop: ".8rem" } }, "S'entraîner quand même : pour le plaisir ou pour te rassurer ; cela fait à peine avancer la planche.")));
+  }
   return h("div", { class: "seance" }, h("div", { class: "feuillet fin-seance seance-vide" },
     h("p", { class: "etiquette" }, TITRES[type] || "Séance"),
     mini,

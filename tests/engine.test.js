@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { construireSession, enregistrerReponse, cloreSession, maitrise, stadeChapitre, entrelacer, calibration } from "../src/engine.js";
-import { creerStore, etatVierge } from "../src/store.js";
+import { creerStore, etatVierge, chargerProfil, VERSION_ETAT } from "../src/store.js";
 
 // Store de test sans localStorage.
 globalThis.localStorage = { _m: {}, getItem(k) { return this._m[k] ?? null; }, setItem(k, v) { this._m[k] = v; }, removeItem(k) { delete this._m[k]; } };
@@ -74,4 +74,50 @@ test("calibration agrège par niveau de confiance", () => {
   enregistrerReponse(store, it, { juste: false, confiance: 3 });
   const c = calibration(store.etat);
   assert.equal(c[2].n, 2); assert.equal(c[2].taux, 0.5);
+});
+
+test("découvrir : rien d'utile à revoir le jour même → séance vide (pas de questions réussies resservies)", () => {
+  const mod = faireModule(), chap = mod.chapitres[0];
+  const store = creerStore(etatVierge({ id: "t4", prenom: "T", niveau: "6e" }));
+  const t0 = Date.now();
+  for (const it of chap.items) enregistrerReponse(store, it, { juste: true, confiance: 2, dureeMs: 4000 }, t0);
+  const s = construireSession({ type: "decouvrir", etat: store.etat, chapitre: chap, modules: [mod], n: 10, maintenant: t0 + 60000 });
+  assert.equal(s.items.length, 0);
+  // Une question ratée revient en tête, même avant son échéance (10 min).
+  enregistrerReponse(store, chap.items[3], { juste: false, confiance: 2, dureeMs: 4000 }, t0 + 60000);
+  const s2 = construireSession({ type: "decouvrir", etat: store.etat, chapitre: chap, modules: [mod], n: 10, maintenant: t0 + 120000 });
+  assert.deepEqual(s2.items.map(i => i.id), [chap.items[3].id]);
+});
+
+test("libre : questions déjà vues seulement, ratées d'abord, sans doublon", () => {
+  const mod = faireModule(), chap = mod.chapitres[0];
+  const store = creerStore(etatVierge({ id: "t5", prenom: "T", niveau: "6e" }));
+  const t0 = Date.now();
+  for (const it of chap.items.slice(0, 6)) enregistrerReponse(store, it, { juste: true, confiance: 2, dureeMs: 4000 }, t0);
+  enregistrerReponse(store, chap.items[4], { juste: false, confiance: 2, dureeMs: 4000 }, t0);
+  const s = construireSession({ type: "libre", etat: store.etat, chapitre: chap, modules: [mod], n: 10, maintenant: t0 + 60000 });
+  assert.equal(s.items.length, 6);
+  assert.equal(new Set(s.items.map(i => i.id)).size, 6);
+  assert.equal(s.items[0].id, chap.items[4].id);
+  assert.ok(s.items.every(i => store.etat.items[i.id]?.s));
+});
+
+test("journées travaillées : une par journée (bascule à 4 h), et reconstituées pour un ancien profil", () => {
+  const mod = faireModule(), chap = mod.chapitres[0];
+  const store = creerStore(etatVierge({ id: "t6", prenom: "T", niveau: "6e" }));
+  const soir = new Date(2026, 9, 26, 22, 0, 0).getTime(), nuit = new Date(2026, 9, 27, 2, 0, 0).getTime(), matin = new Date(2026, 9, 27, 9, 0, 0).getTime();
+  enregistrerReponse(store, chap.items[0], { juste: true }, soir);
+  enregistrerReponse(store, chap.items[1], { juste: true }, nuit);   // même journée que la soirée
+  enregistrerReponse(store, chap.items[2], { juste: true }, matin);  // après le sommeil : nouvelle journée
+  assert.deepEqual(store.etat.chapitres[chap.id].jours, ["2026-10-26", "2026-10-27"]);
+  // Ancien profil (version 2) : journées tirées de la dernière révision des questions et du journal.
+  const ancien = etatVierge({ id: "vieux", prenom: "V", niveau: "6e" });
+  ancien.version = 2; delete ancien.chapitres;
+  ancien.items[chap.items[0].id] = { s: 3, last: new Date(2026, 9, 1, 15).getTime() };
+  ancien.items[chap.items[1].id] = { s: 3, last: new Date(2026, 9, 5, 15).getTime() };
+  ancien.journal.push({ t: new Date(2026, 9, 3, 15).getTime(), chapitre: chap.id, type: "decouvrir", n: 8, ok: 7 });
+  localStorage.setItem("eclore:profil:vieux", JSON.stringify(ancien));
+  const migre = chargerProfil("vieux");
+  assert.equal(migre.version, VERSION_ETAT);
+  assert.deepEqual(migre.chapitres[chap.id].jours, ["2026-10-01", "2026-10-03", "2026-10-05"]);
 });

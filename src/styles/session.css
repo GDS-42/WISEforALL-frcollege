@@ -139,6 +139,8 @@ body[data-ecran="session"] { padding-left: 0; padding-bottom: 2rem; }
 
 /* Fin de séance. */
 .fin-seance { text-align: center; padding: 1.8rem 1.4rem; }
+.fin-seance .a-revoir { text-align: left; max-width: 34rem; margin: .4rem auto .8rem; padding: .6rem .9rem; border: 1.5px dashed var(--trait-fort); border-radius: var(--r); }
+.fin-seance .a-revoir ul { margin: .3rem 0 0; padding-left: 1.2rem; }
 .fin-seance .score { display: flex; justify-content: center; align-items: baseline; gap: .4rem; margin: .2rem 0 .4rem; }
 .fin-seance .score .grand { font-family: var(--f-titre); font-size: 4.2rem; line-height: 1; color: var(--pigment-texte); }
 .fin-seance .score .sur { font-family: var(--f-titre); font-size: 1.6rem; color: var(--encre-3); }

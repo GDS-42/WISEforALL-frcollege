@@ -11,7 +11,7 @@ fiche « Je retiens » est volontairement courte : elle sert d'appui avant de r�
 relire. (Roediger & Karpicke, 2006 ; Dunlosky et al., 2013.)
 
 **Répétition espacée.** Le planificateur `src/scheduler.js` implémente FSRS (Free Spaced Repetition
-Scheduler, paramètres v4.5), l'algorithme ouvert le plus performant à ce jour pour prédire l'oubli.
+Scheduler, courbe et paramètres par défaut de la version 4), l'algorithme ouvert de référence pour prédire l'oubli.
 Chaque question a un état mémoire (stabilité, difficulté) ; la rétrievabilité R(t) = (1 + t/9S)^-1
 décroît avec le temps ; on replanifie pour une rétention cible de 90 %. Dans le jeu, cela devient
 « une plante a soif » : la métaphore rend visible la courbe de l'oubli.
@@ -70,6 +70,45 @@ sont formulés dans un état d'esprit de développement (Dweck) : « Pas encore 
 Le « rituel du jour » fixe un objectif petit et tenable ; le jeu rappelle que revenir demain compte
 plus que tout faire aujourd'hui.
 
+### Ouverture de l'épreuve : des journées de réussite, pas des répétitions
+
+La planche d'un chapitre se colorie, et son épreuve devient possible, quand cinq garde-fous sont réunis
+(`conditionsPlanche` dans `src/gamification.js`) :
+
+- **toutes les questions du chapitre rencontrées** (l'épreuve ne pose pas de question inconnue) ;
+- **maîtrise ≥ 0,60**. C'est la moyenne de R × min(1, max(0,3 ; S/21 j)) : une question ne compte
+  pleinement que lorsque sa prochaine révision est à trois semaines ou plus. En pratique, cela demande
+  que 40 à 50 % des questions aient réussi leur troisième rappel espacé ;
+- **chaque compétence ≥ 0,45**, pour qu'une compétence fragile ne soit pas masquée par la moyenne ;
+- **au moins 3 journées d'entraînement distinctes** sur le chapitre (plusieurs séances le même jour
+  comptent pour une) ;
+- **au moins 7 jours** entre la première séance et la planche coloriée.
+
+La journée bascule à 4 h : c'est le sommeil qui sépare deux journées. L'épreuve s'ouvre **la journée
+suivante**, et, après un échec, de nouveau la journée suivante, avec les compétences fragiles servies
+d'abord. Pour un élève assidu qui répond juste, l'épreuve s'ouvre vers J10–J14.
+
+Pourquoi : se rappeler une fois dans chacune de trois séances espacées donne bien plus de rétention
+qu'en trois fois dans une même séance (68 % contre 26 % à une semaine, Rawson & Dunlosky). Le sommeil
+consolide entre deux séances (Mazza et al., 2016). Un test passé au moins un jour plus tard mesure
+l'apprentissage durable, pas la performance du moment (Rowland, 2014 ; Soderstrom & Bjork, 2015).
+Relever le seuil n'apporte presque rien de durable (Matayoshi et al., 2022 et 2025).
+
+Ce qui relève de la science et ce qui relève d'un choix de conception :
+- **établi :** plusieurs journées de réussite et au moins une nuit avant l'épreuve ;
+- **choix de conception, à ajuster sur les données d'ÉCLORE :** 0,60, 21 jours, 0,45, 3 jours, 7 jours
+  et la bascule à 4 h.
+
+L'élève voit la règle :
+- l'onglet « L'épreuve » coche chaque condition avec son compteur, liste les questions les moins
+  enracinées avec leur prochain rendez-vous, et donne une date d'ouverture estimée ;
+- la planche coloriée annonce l'épreuve « demain matin » ;
+- le rituel du jour signale « Épreuve prête ».
+
+Quand tout un chapitre est réussi pour l'instant, « M'entraîner » le dit, donne la prochaine révision
+utile et propose un entraînement libre, au lieu de resservir les mêmes questions. Le rapport complet,
+sources comprises, a été produit lors de la conception (« Calibrage du seuil de maîtrise »).
+
 ## 4. Clarté et accessibilité
 
 - Interface en français simple, tutoiement, une action principale par écran.
@@ -110,3 +149,9 @@ adulte qui lit le bilan. Les données restent sur l'appareil.
 - Deci, E. L., & Ryan, R. M. (2000). Self-Determination Theory. *Psychological Inquiry*.
 - Dweck, C. (2006). *Mindset: The New Psychology of Success*.
 - FSRS : open-spaced-repetition (algorithme libre, 2022-2024).
+- Rawson, K. A., & Dunlosky, J. (2011). Optimizing schedules of retrieval practice for durable and efficient learning. *Journal of Experimental Psychology: General*.
+- Cepeda, N. J. et al. (2008). Spacing effects in learning: A temporal ridgeline of optimal retention. *Psychological Science*.
+- Mazza, S. et al. (2016). Relearn faster and retain longer: Along with practice, sleep makes perfect. *Psychological Science*.
+- Rowland, C. A. (2014). The effect of testing versus restudy on retention: A meta-analytic review. *Psychological Bulletin*.
+- Soderstrom, N. C., & Bjork, R. A. (2015). Learning versus performance: An integrative review. *Perspectives on Psychological Science*.
+- Matayoshi, J., Cosyn, E., & Uzun, H. (2022). Does practice make perfect? Analyzing the relationship between higher mastery and forgetting. *EDM 2022*.

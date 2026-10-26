@@ -26,12 +26,18 @@
 //        contexte (facultatif) : { coursDisponibles = true, nouveauxChapitres = true, matieres = ∞ } pour écarter
 //        les quêtes impossibles. Les quêtes accomplies et non réclamées la veille sont créditées automatiquement.
 //  reclamerQuete(etat, id) → lumens crédités (0 si non accomplie ou déjà réclamée)
+//  conditionsPlanche(etat, chapitre, maintenant) → { total, vues, maitrise, competences[], jours, etendue, ok{…}, toutes }
+//        garde-fous de la planche coloriée (docs/PEDAGOGIE.md) : toutes les questions rencontrées, maîtrise ≥ 0,60,
+//        chaque compétence ≥ 0,45, au moins 3 journées travaillées sur au moins 7 jours
+//  projectionOuverture(etat, chapitre, maintenant) → date estimée d'ouverture de l'épreuve (réponses « Bien » à chaque échéance) | null
 //  etatPlanche(etat, chapitre, maintenant) → "cachee" | "esquisse" | "coloriee" | "doree"   (chapitre = { id, items })
 //  verifierPlanches(etat, chapitres, maintenant) → [chapitreId] nouvellement coloriées (mémorisées dans gamif.herbier ;
 //        au tout premier passage d'un profil migré, elles sont enregistrées sans être renvoyées : pas d'avalanche)
-//  epreuveDisponible(etat, chapitre, maintenant) → bool (planche coloriée ou dorée)
-//  construireEpreuve(chapitre, etat) → items[] (10 max, sans carte flash, toutes compétences, difficultés mêlées)
-//  resultatEpreuve(etat, chapitreId, justes, total, maintenant?) → { reussie, taux, bonus, doree, message }  (seuil 80 %, bonus 1re fois)
+//  epreuveDisponible(etat, chapitre, maintenant) → bool (planche coloriée une journée précédente, pas d'échec aujourd'hui)
+//  construireEpreuve(chapitre, etat, maintenant?) → items[] (10 max, sans carte flash, toutes compétences, difficultés mêlées ;
+//        compétences les plus faibles servies d'abord, questions déjà vues aujourd'hui en dernier)
+//  resultatEpreuve(etat, chapitreId, justes, total, maintenant?) → { reussie, taux, bonus, doree, message }  (seuil 80 %, bonus 1re fois ;
+//        un échec ferme l'épreuve jusqu'à la journée suivante)
 //  CATALOGUE : 12 × { id, nom, desc, prix, niveauMin }
 //  acheter(etat, id) → { ok: true, prix } | { ok: false, raison: "inconnu"|"possede"|"niveau"|"fonds", manque? }
 //  placer(etat, id, x) → bool (x borné à [0, 1]) ; retirer(etat, id) → bool (retour à l'inventaire)
@@ -52,7 +58,8 @@
 //  verifierNiveau(etat) → notification "niveau" | null (appelée par appliquerEvenement ; utile après reclamerQuete)
 
 import { maitrise, couverture, melanger } from "./engine.js";
-import { cleJour } from "./store.js";
+import { cleJour, cleJournee, ecartJours, noterJournee } from "./store.js";
+import { reviser, NOTES } from "./scheduler.js";
 
 export const VERSION_GAMIF = 1;
 const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
@@ -206,7 +213,7 @@ function contexteQuetes(etat, maintenant, contexte = {}) {
     dejaRate: valeurs.some(e => e && e.lapses > 0),
     confiance: etat.prefs?.confiance !== false,
     objectifItems: clamp(Math.round(num(etat.prefs?.objectifItems, 15)), 5, 50),
-    epreuvePossible: Object.values(g.herbier).some(h => h.coloriee && !h.doree),
+    epreuvePossible: Object.values(g.herbier).some(h => !h.doree && epreuveOuverte(h, maintenant)),
     coursDisponibles: contexte.coursDisponibles !== false,
     nouveauxChapitres: contexte.nouveauxChapitres !== false,
     matieres: num(contexte.matieres, Infinity),
@@ -244,11 +251,57 @@ export function reclamerQuete(etat, id) {
 }
 
 // ─── 4. Herbier ─────────────────────────────────────────────────────────────────────────────────
-const SEUIL_MAITRISE = 0.6, SEUIL_COUVERTURE = 0.8;
+// Garde-fous calibrés sur la recherche (docs/PEDAGOGIE.md, « Ouverture de l'épreuve ») : la durabilité se compte
+// en journées de réussite espacées, séparées par le sommeil, et non en bonnes réponses le même jour.
+export const SEUIL_MAITRISE = 0.6, SEUIL_COMPETENCE = 0.45, JOURS_MIN = 3, ETENDUE_MIN = 7;
+
+export function conditionsPlanche(etat, chapitre, maintenant = Date.now()) {
+  const items = chapitre.items || [];
+  const parComp = new Map();
+  for (const it of items) { if (!parComp.has(it.competence)) parComp.set(it.competence, []); parComp.get(it.competence).push(it); }
+  const competences = [...parComp].map(([id, liste]) => ({ id, maitrise: maitrise(liste, etat, maintenant) }));
+  const jours = etat.chapitres?.[chapitre.id]?.jours || [];
+  const c = {
+    total: items.length,
+    vues: Math.round(couverture(items, etat) * items.length),
+    maitrise: maitrise(items, etat, maintenant),
+    competences,
+    competencesOk: competences.filter(x => x.maitrise >= SEUIL_COMPETENCE).length,
+    jours: jours.length,
+    etendue: jours.length ? ecartJours(jours[0], cleJournee(maintenant)) : 0,
+  };
+  c.ok = {
+    decouverte: c.total > 0 && c.vues === c.total,
+    racines: c.maitrise >= SEUIL_MAITRISE,
+    competences: competences.length > 0 && c.competencesOk === competences.length,
+    jours: c.jours >= JOURS_MIN,
+    etendue: c.etendue >= ETENDUE_MIN,
+  };
+  c.toutes = Object.values(c.ok).every(Boolean);
+  return c;
+}
 
 function merite(etat, chapitre, maintenant) {
+  return conditionsPlanche(etat, chapitre, maintenant).toutes;
+}
+
+/** Date estimée d'ouverture de l'épreuve si l'élève répond « Bien » à chaque échéance (projection, pas promesse). */
+export function projectionOuverture(etat, chapitre, maintenant = Date.now(), horizonJours = 60) {
   const items = chapitre.items || [];
-  return items.length > 0 && maitrise(items, etat, maintenant) >= SEUIL_MAITRISE && couverture(items, etat) >= SEUIL_COUVERTURE;
+  if (!items.length || etat.gamif?.herbier?.[chapitre.id]?.coloriee) return null;
+  const sim = { items: {}, chapitres: { [chapitre.id]: { jours: [...(etat.chapitres?.[chapitre.id]?.jours || [])] } } };
+  for (const it of items) if (etat.items[it.id]) sim.items[it.id] = { ...etat.items[it.id] };
+  for (let d = 0; d <= horizonJours; d++) {
+    const t = maintenant + d * 86400000;
+    let actif = false;
+    for (const it of items) {
+      const e = sim.items[it.id];
+      if (!e?.s || e.due <= t) { sim.items[it.id] = reviser(e, NOTES.BIEN, t); actif = true; }
+    }
+    if (actif) noterJournee(sim, chapitre.id, t);
+    if (merite(sim, chapitre, t)) return t + 86400000; // planche coloriée ce jour-là, épreuve le lendemain
+  }
+  return null;
 }
 
 export function etatPlanche(etat, chapitre, maintenant = Date.now()) {
@@ -273,22 +326,33 @@ export function verifierPlanches(etat, chapitres, maintenant = Date.now()) {
 // ─── 5. Épreuve de chapitre ─────────────────────────────────────────────────────────────────────
 export const TAILLE_EPREUVE = 10, SEUIL_EPREUVE = 0.8, BONUS_EPREUVE = 40;
 
-export function epreuveDisponible(etat, chapitre, maintenant = Date.now()) {
-  const p = etatPlanche(etat, chapitre, maintenant);
-  return p === "coloriee" || p === "doree";
+/** L'épreuve s'ouvre la journée qui suit la planche coloriée (la nuit consolide) et, après un échec, la journée suivante. */
+function epreuveOuverte(h, maintenant) {
+  if (!h?.coloriee) return false;
+  const auj = cleJournee(maintenant);
+  return auj > cleJournee(h.coloriee) && (!h.dernierEchec || auj > cleJournee(h.dernierEchec));
 }
 
-export function construireEpreuve(chapitre, etat) {
+export function epreuveDisponible(etat, chapitre, maintenant = Date.now()) {
+  return epreuveOuverte(etat.gamif?.herbier?.[chapitre.id], maintenant);
+}
+
+export function construireEpreuve(chapitre, etat, maintenant = Date.now()) {
   const candidats = (chapitre.items || []).filter(it => it.type !== "flash");
   const essais = etat.gamif?.herbier?.[chapitre.id]?.essais || 0;
   const graine = hash32(`${chapitre.id}|${etat.profil?.graine ?? 0}|${essais}`) || 1;
+  // Les questions déjà vues aujourd'hui passent en dernier : l'épreuve mesure ce qui tient, pas ce qui vient d'être corrigé.
+  const auj = cleJournee(maintenant);
+  const vueAujourdhui = (it) => (etat.items?.[it.id]?.last && cleJournee(etat.items[it.id].last) === auj ? 1 : 0);
   // Par compétence : on alterne les difficultés (départ décalé d'une compétence à l'autre).
   const parComp = new Map();
-  for (const it of melanger(candidats, graine)) {
+  for (const it of melanger(candidats, graine).sort((a, b) => vueAujourdhui(a) - vueAujourdhui(b))) {
     if (!parComp.has(it.competence)) parComp.set(it.competence, []);
     parComp.get(it.competence).push(it);
   }
-  const files = [...parComp.values()].map((liste, ci) => {
+  // Les compétences les plus fragiles d'abord : elles reçoivent les questions en plus quand le partage n'est pas égal.
+  const faiblesse = (liste) => (etat.items ? maitrise(liste, etat, maintenant) : 0);
+  const files = [...parComp.values()].sort((a, b) => faiblesse(a) - faiblesse(b)).map((liste, ci) => {
     const seaux = [1, 2, 3].map(d => liste.filter(it => (it.difficulte || 2) === d));
     const autres = liste.filter(it => ![1, 2, 3].includes(it.difficulte || 2));
     const out = [];
@@ -317,8 +381,9 @@ export function resultatEpreuve(etat, chapitreId, justes, total, maintenant = Da
   h.essais = (h.essais || 0) + 1;
   const reussie = tot > 0 && taux >= SEUIL_EPREUVE;
   if (!reussie) {
+    h.dernierEchec = maintenant;
     return { reussie, taux, bonus: 0, doree: false,
-      message: `${ok} sur ${tot} : pas encore la planche dorée. Arrose ce chapitre quelques jours, puis retente l'épreuve quand tu veux.` };
+      message: `${ok} sur ${tot} : pas encore la planche dorée. Revois les compétences fragiles ; tu pourras retenter l'épreuve dès demain, après une nuit de sommeil.` };
   }
   const premiere = !h.doree;
   if (premiere) { h.doree = maintenant; h.coloriee = h.coloriee || h.doree; }

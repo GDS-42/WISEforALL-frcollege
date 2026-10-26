@@ -2,10 +2,12 @@
 import { h, mdEl, pluriel, toast, poser, remplacer } from "./dom.js";
 import { icone } from "./icones.js";
 import { trouverChapitre, chargerModule, coursDuChapitre, MATIERES, SOCLE } from "../content.js";
-import { maitrise, couverture, nbDus, stadeChapitre } from "../engine.js";
+import { maitrise, couverture, nbDus, stadeChapitre, contribution } from "../engine.js";
 import { paliersElo } from "../adapt.js";
 import { plantePetite, NOMS_STADES } from "../plants.js";
-import { etatPlanche, epreuveDisponible, appliquerEvenement } from "../gamification.js";
+import { etatPlanche, epreuveDisponible, appliquerEvenement, verifierPlanches, conditionsPlanche, projectionOuverture, SEUIL_MAITRISE, SEUIL_COMPETENCE, JOURS_MIN, ETENDUE_MIN } from "../gamification.js";
+import { cleJournee } from "../store.js";
+import { retirerBalises } from "../lecture.js";
 import { sons } from "../audio.js";
 
 const NIVEAUX_COMP = ["à découvrir", "en éveil", "en route", "solide", "experte"];
@@ -15,6 +17,10 @@ export async function ecranChapitre(main, [chapId, ongletDemande], app) {
   const c = await trouverChapitre(chapId);
   if (!c) { poser(main, h("p", {}, "Chapitre introuvable.")); return; }
   const [mod, cours] = await Promise.all([chargerModule(c.niveau, c.matiere), coursDuChapitre(c)]);
+  // Une planche peut se colorier sans nouvelle réponse (il suffit que les jours passent) : on l'enregistre ici aussi.
+  let nouvelles = [];
+  app.store.maj(x => { nouvelles = verifierPlanches(x, [c]); });
+  if (nouvelles.length) notifier({ notifications: [{ type: "planche", chapitre: c.id, etat: "coloriee" }] });
   const info = MATIERES[c.matiere];
   const idx = mod.chapitres.findIndex(x => x.id === c.id);
   const s = stadeChapitre(c, e), mt = maitrise(c.items, e), cv = couverture(c.items, e), dus = nbDus(c.items, e);
@@ -36,7 +42,8 @@ export async function ecranChapitre(main, [chapId, ongletDemande], app) {
           h("span", { class: "puce" }, `${Math.round(mt * 100)} % maîtrisé`),
           h("span", { class: "puce" }, pluriel(c.items.length, "question")),
           dus ? h("span", { class: "puce pigment" }, icone("goutte"), pluriel(dus, "révision")) : null,
-          planche === "doree" ? h("span", { class: "puce", style: { color: "var(--or)", borderColor: "var(--or)" } }, icone("epreuve"), "Planche dorée") : null))));
+          planche === "doree" ? h("span", { class: "puce", style: { color: "var(--or)", borderColor: "var(--or)" } }, icone("epreuve"), "Planche dorée")
+            : epreuveDisponible(e, c) ? h("a", { class: "puce", href: `#/chapitre/${c.id}/epreuve`, style: { color: "var(--or)", borderColor: "var(--or)" } }, icone("epreuve"), "Épreuve prête") : null))));
 
   const tabs = [["cours", "livre", "Le cours"], ["entrainement", "crayon", "S'entraîner"], ["epreuve", "epreuve", "L'épreuve"]];
   const barre = h("div", { class: "onglets", role: "tablist", "aria-label": "Parties du chapitre" });
@@ -90,7 +97,9 @@ export function notifier(r) {
   for (const n of r?.notifications || []) {
     if (n.type === "niveau") { sons.succes(); toast(h("span", {}, h("strong", {}, `Niveau ${n.niveau} : ${n.nom}`), h("br"), "Ton jardin grandit avec toi."), { icone: "🌿", classe: "succes", duree: 5200 }); }
     else if (n.type === "quete") toast(h("span", {}, h("strong", {}, "Quête accomplie"), h("br"), `${n.libelle} · réclame +${n.recompense} ✦ au jardin`), { icone: "📜", classe: "succes", duree: 4600 });
-    else if (n.type === "planche") toast(h("span", {}, h("strong", {}, n.etat === "doree" ? "Planche dorée !" : "Nouvelle planche dans l'herbier"), h("br"), "Va la voir dans ton herbier."), { icone: n.etat === "doree" ? "🏅" : "🌸", classe: "succes", duree: 5200 });
+    else if (n.type === "planche") toast(n.etat === "doree"
+      ? h("span", {}, h("strong", {}, "Planche dorée !"), h("br"), "Va la voir dans ton herbier.")
+      : h("span", {}, h("strong", {}, "Planche coloriée !"), h("br"), "Ton épreuve dorée s'ouvre demain matin : la nuit va consolider ce que tu sais."), { icone: n.etat === "doree" ? "🏅" : "🌸", classe: "succes", duree: 6500 });
   }
 }
 
@@ -124,13 +133,59 @@ function vueEntrainement(c, mod, idx, app, { cours, coursLu, cv, dus }) {
 }
 
 function vueEpreuve(c, app) {
-  const e = app.etat;
-  const etat = etatPlanche(e, c);
-  const dispo = epreuveDisponible(e, c);
-  return h("section", { class: "feuillet", style: { maxWidth: "640px" } },
-    h("h2", {}, etat === "doree" ? "Planche dorée obtenue" : "L'épreuve du chapitre"),
-    h("p", {}, "Dix questions qui couvrent toutes les compétences du chapitre, sans aide ni seconde chance. Réussis-en au moins 8 pour dorer la planche de ce chapitre dans ton herbier."),
-    dispo
-      ? h("a", { class: "btn or large", href: `#/session/epreuve/${c.id}` }, icone("epreuve"), etat === "doree" ? "Rejouer l'épreuve" : "Tenter l'épreuve")
-      : h("div", {}, h("p", { class: "muet", style: { display: "flex", gap: ".5rem", alignItems: "center" } }, icone("cadenas"), "L'épreuve s'ouvre quand la planche de ce chapitre est coloriée : environ 60 % de maîtrise et 80 % des questions rencontrées."), h("a", { class: "btn", href: `#/session/decouvrir/${c.id}` }, "M'entraîner d'abord", icone("suivant"))));
+  const e = app.etat, maintenant = Date.now();
+  const etat = etatPlanche(e, c, maintenant);
+  const herbier = e.gamif?.herbier?.[c.id];
+  const intro = h("p", {}, "Dix questions qui couvrent toutes les compétences du chapitre, sans aide ni seconde chance. Réussis-en au moins 8 pour dorer la planche de ce chapitre dans ton herbier.");
+  const titre = h("h2", {}, etat === "doree" ? "Planche dorée obtenue" : "L'épreuve du chapitre");
+  const entrainer = (lib) => h("a", { class: "btn", href: `#/session/decouvrir/${c.id}` }, lib, icone("suivant"));
+  const feuillet = (...enfants) => h("section", { class: "feuillet", style: { maxWidth: "640px" } }, titre, intro, ...enfants);
+
+  if (epreuveDisponible(e, c, maintenant)) return feuillet(
+    h("a", { class: "btn or large", href: `#/session/epreuve/${c.id}` }, icone("epreuve"), etat === "doree" ? "Rejouer l'épreuve" : "Tenter l'épreuve"),
+    etat === "doree" ? null : h("p", { class: "tres-muet petit", style: { marginBottom: 0 } }, "Conseil : passe l'épreuve avant d'arroser, pour mesurer ce qui tient vraiment."));
+
+  // Planche coloriée, épreuve pour la journée suivante (planche coloriée aujourd'hui, ou épreuve tentée aujourd'hui).
+  if (herbier?.coloriee) {
+    const echec = herbier.dernierEchec && cleJournee(herbier.dernierEchec) === cleJournee(maintenant);
+    return feuillet(
+      h("p", { class: "muet", style: { display: "flex", gap: ".5rem", alignItems: "flex-start" } }, icone("lune"),
+        echec ? "Tu as tenté l'épreuve aujourd'hui. Tu pourras la retenter dès demain : une nuit de sommeil aide ta mémoire à consolider ce que tu viens de revoir."
+          : "Planche coloriée ! Ton épreuve s'ouvre demain matin : une nuit de sommeil consolide ce que tu sais."),
+      entrainer(echec ? "Revoir le chapitre" : "M'entraîner en attendant"));
+  }
+
+  // Pas encore coloriée : ce qui est fait, ce qui manque, et quand l'épreuve devrait s'ouvrir.
+  const k = conditionsPlanche(e, c, maintenant);
+  const pct = (x) => `${Math.round(x * 100)} %`;
+  const condition = (ok, libelle, detail) => h("li", { class: ok ? "ok" : "" },
+    h("span", { class: "case", "aria-hidden": "true" }, ok ? icone("valider", { taille: 14 }) : null),
+    h("span", {}, h("strong", {}, libelle), h("span", { class: "muet" }, ` · ${detail}`), h("span", { class: "cours-sr" }, ok ? " (fait)" : " (à faire)")));
+  const faibles = c.competences.filter(comp => (k.competences.find(x => x.id === comp.id)?.maitrise ?? 0) < SEUIL_COMPETENCE);
+  const liste = h("ul", { class: "conditions" },
+    condition(k.ok.decouverte, "Toutes les questions découvertes", `${k.vues} sur ${k.total}`),
+    condition(k.ok.racines, "Racines du chapitre", `${pct(k.maitrise)} sur ${pct(SEUIL_MAITRISE)}`),
+    condition(k.ok.competences, "Chaque compétence enracinée", `${k.competencesOk} sur ${k.competences.length}` + (faibles.length && faibles.length <= 2 ? ` (encore fragile : ${faibles.map(x => x.libelle).join(" ; ")})` : "")),
+    condition(k.ok.jours, "Plusieurs journées d'entraînement", `${Math.min(k.jours, JOURS_MIN)} sur ${JOURS_MIN}`),
+    condition(k.ok.etendue, "Une semaine depuis ta première séance", k.jours ? `J+${Math.min(k.etendue, ETENDUE_MIN)} sur ${ETENDUE_MIN}` : "pas encore commencé"));
+
+  // Ce qui manque : les questions les moins enracinées, avec leur prochain rendez-vous.
+  const texte = (it) => { const t = retirerBalises(it.q || it.texte || it.recto || "").replace(/\*\*|==|\*|_{3,}/g, (m) => (m.startsWith("_") ? "…" : "")).replace(/\s+/g, " ").trim(); return t.length > 80 ? `${t.slice(0, 78)}…` : t; };
+  const rendezVous = (it) => {
+    const x = e.items[it.id];
+    if (!x?.s) return "à découvrir";
+    if (x.due <= maintenant) return "à revoir aujourd'hui";
+    return `prochaine révision ${new Date(x.due).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })}`;
+  };
+  const manquent = c.items.map(it => ({ it, v: contribution(e.items[it.id], maintenant) })).filter(x => x.v < 0.999).sort((a, b) => a.v - b.v).slice(0, 5);
+  const projection = projectionOuverture(e, c, maintenant);
+  return feuillet(
+    h("p", { class: "muet", style: { display: "flex", gap: ".5rem", alignItems: "center", marginBottom: ".2rem" } }, icone("cadenas"), "L'épreuve s'ouvre le lendemain du jour où ces conditions sont réunies :"),
+    liste,
+    manquent.length ? h("div", { class: "manque" }, h("p", { class: "etiquette" }, "Ce qui manque surtout"),
+      h("ul", {}, manquent.map(({ it }) => h("li", {}, h("span", {}, texte(it)), h("span", { class: "tres-muet" }, ` · ${rendezVous(it)}`))))) : null,
+    projection ? h("p", { class: "petit" }, "Si tu fais tes révisions quand elles arrivent, l'épreuve devrait s'ouvrir vers ",
+      h("strong", {}, new Date(projection).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" })), " (c'est une estimation, pas une promesse).") : null,
+    h("p", { class: "tres-muet petit" }, "Pourquoi attendre ? Ta mémoire garde durablement ce que tu retrouves plusieurs jours différents, après une nuit de sommeil : trois journées espacées valent bien mieux que trois répétitions le même jour."),
+    entrainer("M'entraîner"));
 }

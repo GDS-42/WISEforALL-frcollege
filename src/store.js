@@ -4,7 +4,7 @@
 const CLE_PROFILS = "eclore:profils";
 const CLE_ACTIF = "eclore:profil-actif";
 const prefixe = (id) => `eclore:profil:${id}`;
-export const VERSION_ETAT = 2;
+export const VERSION_ETAT = 3;
 
 export function etatVierge(profil) {
   return {
@@ -13,7 +13,7 @@ export function etatVierge(profil) {
     prefs: { theme: "auto", son: true, animations: true, dys: false, taille: 1, tts: false, voix: "", objectifItems: 15, confiance: true },
     items: {},      // id → état mémoire FSRS + stats { s, d, due, reps, lapses, last, etape, ok, n, conf:[devine,ok], tempsMs }
     comp: {},       // compétence → { elo, n }
-    chapitres: {},  // id → { fiche: ts, decouvert: ts, diag: ts }
+    chapitres: {},  // id → { fiche: ts, decouvert: ts, diag: ts, jours: ["AAAA-MM-JJ", …] (journées travaillées, cf. cleJournee) }
     journal: [],    // sessions { t, duree, n, ok, type, chapitres[] }
     jours: {},      // "AAAA-MM-JJ" → { n, ok, ms }
     serie: { actuelle: 0, record: 0, dernierJour: null, joker: 1 },
@@ -72,6 +72,13 @@ function migrer(e) {
   if ((e.version || 1) < 2 && e.prefs.theme === "nuit") e.prefs.theme = "auto";
   if (!e.cours) e.cours = {};
   if (!e.sauvegarde || typeof e.sauvegarde !== "object") e.sauvegarde = { derniere: null };
+  if (!e.chapitres) e.chapitres = {};
+  // v3 : journées travaillées par chapitre (garde-fous de l'épreuve), reconstituées au mieux
+  // depuis la dernière révision de chaque question et le journal des séances.
+  if ((e.version || 1) < 3) {
+    for (const [id, it] of Object.entries(e.items || {})) if (Number.isFinite(it?.last)) noterJournee(e, id.slice(0, id.lastIndexOf("-")), it.last);
+    for (const s of e.journal || []) if (s?.chapitre && Number.isFinite(s.t)) noterJournee(e, s.chapitre, s.t);
+  }
   e.version = VERSION_ETAT;
   return e;
 }
@@ -134,4 +141,27 @@ export function restaurerSecours(id) {
 export function cleJour(d = new Date()) {
   const p = (n) => String(n).padStart(2, "0");
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
+}
+
+/** Journée d'apprentissage : elle bascule à 4 h, pour qu'une séance tardive compte avec sa soirée
+ *  (c'est le sommeil qui sépare deux journées : il consolide ce qui a été appris). */
+export const BASCULE_JOURNEE_H = 4;
+export function cleJournee(t = Date.now()) { return cleJour(new Date(t - BASCULE_JOURNEE_H * 3600000)); }
+
+/** Nombre de jours de la clé « AAAA-MM-JJ » a à la clé b. */
+export function ecartJours(a, b) {
+  const jour = (k) => { const [y, m, d] = String(k).split("-").map(Number); return Date.UTC(y, m - 1, d); };
+  return Math.round((jour(b) - jour(a)) / 86400000);
+}
+
+/** Note la journée de t parmi les journées travaillées du chapitre (triées, sans doublon). */
+export function noterJournee(e, chapitreId, t) {
+  if (!chapitreId) return;
+  if (!e.chapitres) e.chapitres = {};
+  const c = e.chapitres[chapitreId] || (e.chapitres[chapitreId] = {});
+  const jours = Array.isArray(c.jours) ? c.jours : (c.jours = []);
+  const j = cleJournee(t);
+  if (jours.includes(j)) return;
+  jours.push(j); jours.sort();
+  if (jours.length > 60) jours.splice(1, jours.length - 60); // la première journée et les plus récentes suffisent
 }

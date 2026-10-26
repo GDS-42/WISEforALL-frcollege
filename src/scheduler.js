@@ -1,13 +1,14 @@
 // ÉCLORE — Planificateur de répétition espacée.
-// Implémentation compacte de FSRS (Free Spaced Repetition Scheduler, v4.5),
-// l'état de l'art ouvert en matière de mémorisation à long terme.
+// Implémentation compacte de FSRS (Free Spaced Repetition Scheduler) : courbe d'oubli et poids par défaut
+// de la version 4 (et non 4.5, qui a une autre courbe et d'autres poids). Ne jamais mélanger courbe et poids
+// de versions différentes ; une migration vers FSRS-4.5 ou 6 obligerait à recaler l'horizon de maîtrise (engine.js).
 // Chaque item a un état mémoire : stabilité S (jours), difficulté D (1..10).
 // La rétrievabilité R(t) = (1 + t / (9·S))^(-1) décroît avec le temps écoulé t.
 // On replanifie pour une rétention cible de 90 %.
 
 export const NOTES = { ENCORE: 1, DIFFICILE: 2, BIEN: 3, FACILE: 4 };
 
-// Paramètres par défaut FSRS-4.5
+// Paramètres par défaut FSRS v4
 const w = [0.4, 0.6, 2.4, 5.8, 4.93, 0.94, 0.86, 0.01, 1.49, 0.14, 0.94, 2.18, 0.05, 0.34, 1.26, 0.29, 2.61];
 const JOUR = 86400000;
 const clamp = (x, a, b) => Math.min(b, Math.max(a, x));

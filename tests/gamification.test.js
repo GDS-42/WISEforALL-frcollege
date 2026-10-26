@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import * as G from "../src/gamification.js";
-import { etatVierge, creerStore } from "../src/store.js";
+import { etatVierge, creerStore, cleJournee } from "../src/store.js";
 import { enregistrerReponse, cloreSession } from "../src/engine.js";
 
 globalThis.localStorage = { _m: {}, getItem(k) { return this._m[k] ?? null; }, setItem(k, v) { this._m[k] = v; }, removeItem(k) { delete this._m[k]; } };
@@ -289,38 +289,84 @@ test("cours : lecture complète récompensée une fois, vérifications récompen
 });
 
 // ─── Herbier ──────────────────────────────────────────────────────────────────────────────────
-test("herbier : cachée → esquisse → coloriée (célébrée une fois, permanente) → dorée", () => {
+test("herbier : cachée → esquisse → coloriée (garde-fous, célébrée une fois, permanente) → dorée", () => {
   const etat = vierge(); const chap = faireChapitre();
   G.initialiser(etat);
   assert.equal(G.etatPlanche(etat, chap, T0), "cachee");
   etat.items[chap.items[0].id] = { s: 0.4, due: T0, last: T0, n: 1, ok: 0 };
   assert.equal(G.etatPlanche(etat, chap, T0), "esquisse");
   assert.deepEqual(G.verifierPlanches(etat, [chap], T0), []);
-  for (const it of chap.items.slice(0, 15)) etat.items[it.id] = { s: 30, d: 4, due: T0 + 20 * JOUR, last: T0, n: 3, ok: 3 };
-  // 15/18 ≈ 0,83 de couverture, maîtrise ≈ 0,83
-  assert.equal(G.etatPlanche(etat, chap, T0), "coloriee");
-  assert.deepEqual(G.verifierPlanches(etat, [chap], T0), [chap.id]);
-  assert.deepEqual(G.verifierPlanches(etat, [chap], T0), [], "célébrée une seule fois");
-  assert.equal(G.etatPlanche(etat, chap, T0 + 400 * JOUR), "coloriee", "l'oubli ne décolore pas l'herbier");
-  assert.equal(G.epreuveDisponible(etat, chap, T0), true);
-  G.resultatEpreuve(etat, chap.id, 9, 10);
-  assert.equal(G.etatPlanche(etat, chap, T0), "doree");
-  // Couverture insuffisante : pas coloriée.
+  // Mémoire solide partout, mais tout travaillé en une seule journée : pas encore.
+  for (const it of chap.items) etat.items[it.id] = { s: 30, d: 4, due: T0 + 20 * JOUR, last: T0, n: 3, ok: 3 };
+  etat.chapitres[chap.id] = { jours: [cleJournee(T0)] };
+  const c = G.conditionsPlanche(etat, chap, T0);
+  assert.deepEqual(c.ok, { decouverte: true, racines: true, competences: true, jours: false, etendue: false });
+  assert.equal(G.etatPlanche(etat, chap, T0), "esquisse");
+  // Trois journées sur une semaine : coloriée.
+  const T7 = T0 + 7 * JOUR;
+  etat.chapitres[chap.id].jours = [T0, T0 + 3 * JOUR, T7].map(t => cleJournee(t));
+  for (const it of chap.items) etat.items[it.id].last = T7;
+  assert.equal(G.conditionsPlanche(etat, chap, T7).toutes, true);
+  assert.equal(G.etatPlanche(etat, chap, T7), "coloriee");
+  assert.deepEqual(G.verifierPlanches(etat, [chap], T7), [chap.id]);
+  assert.deepEqual(G.verifierPlanches(etat, [chap], T7), [], "célébrée une seule fois");
+  assert.equal(G.etatPlanche(etat, chap, T7 + 400 * JOUR), "coloriee", "l'oubli ne décolore pas l'herbier");
+  // L'épreuve s'ouvre la journée suivante, pas dans la séance qui colorie la planche.
+  assert.equal(G.epreuveDisponible(etat, chap, T7), false);
+  assert.equal(G.epreuveDisponible(etat, chap, T7 + JOUR), true);
+  // Un échec la referme jusqu'à la journée suivante.
+  G.resultatEpreuve(etat, chap.id, 5, 10, T7 + JOUR);
+  assert.equal(G.epreuveDisponible(etat, chap, T7 + JOUR + 3600000), false);
+  assert.equal(G.epreuveDisponible(etat, chap, T7 + 2 * JOUR), true);
+  G.resultatEpreuve(etat, chap.id, 9, 10, T7 + 2 * JOUR);
+  assert.equal(G.etatPlanche(etat, chap, T7 + 2 * JOUR), "doree");
+  // Couverture incomplète : pas coloriée, même avec une mémoire solide et des journées espacées.
   const e2 = vierge(); const c2 = faireChapitre("6e-svt-01-x");
-  for (const it of c2.items.slice(0, 10)) e2.items[it.id] = { s: 60, due: T0 + 60 * JOUR, last: T0 };
-  assert.equal(G.etatPlanche(e2, c2, T0), "esquisse");
-  assert.equal(G.epreuveDisponible(e2, c2, T0), false);
+  for (const it of c2.items.slice(0, 17)) e2.items[it.id] = { s: 60, due: T7 + 60 * JOUR, last: T7 };
+  e2.chapitres[c2.id] = { jours: etat.chapitres[chap.id].jours.slice() };
+  assert.equal(G.etatPlanche(e2, c2, T7), "esquisse");
+  assert.equal(G.epreuveDisponible(e2, c2, T7 + JOUR), false);
   assert.equal(G.etatPlanche(e2, { id: "vide", items: [] }, T0), "cachee");
+});
+
+test("herbier : une compétence restée fragile retient la planche, même avec une bonne moyenne", () => {
+  const etat = vierge(); const chap = faireChapitre();
+  const T7 = T0 + 7 * JOUR;
+  for (const it of chap.items) etat.items[it.id] = it.competence.endsWith("-c0")
+    ? { s: 2.4, d: 5, due: T7 + 2 * JOUR, last: T7, n: 1, ok: 1 }
+    : { s: 30, d: 4, due: T7 + 20 * JOUR, last: T7, n: 3, ok: 3 };
+  etat.chapitres[chap.id] = { jours: [T0, T0 + 3 * JOUR, T7].map(t => cleJournee(t)) };
+  const c = G.conditionsPlanche(etat, chap, T7);
+  assert.ok(c.maitrise >= G.SEUIL_MAITRISE, "la moyenne passe");
+  assert.equal(c.competencesOk, 2);
+  assert.equal(c.ok.competences, false);
+  assert.equal(G.etatPlanche(etat, chap, T7), "esquisse");
+});
+
+test("projection d'ouverture : au plus tôt après une semaine et trois journées, jamais pour une planche déjà coloriée", () => {
+  const etat = vierge(); const chap = faireChapitre();
+  const p = G.projectionOuverture(etat, chap, T0);
+  assert.ok(p >= T0 + 8 * JOUR, "au moins J7 pour colorier, épreuve le lendemain");
+  assert.ok(p <= T0 + 30 * JOUR);
+  // Tout est déjà réuni aujourd'hui : coloriée aujourd'hui, épreuve demain.
+  for (const it of chap.items) etat.items[it.id] = { s: 30, d: 4, due: T0 + 20 * JOUR, last: T0, n: 3, ok: 3 };
+  etat.chapitres[chap.id] = { jours: [T0 - 7 * JOUR, T0 - 4 * JOUR, T0].map(t => cleJournee(t)) };
+  assert.equal(G.projectionOuverture(etat, chap, T0), T0 + JOUR);
+  G.verifierPlanches(etat, [chap], T0);
+  assert.equal(G.projectionOuverture(etat, chap, T0), null);
 });
 
 test("herbier d'un profil migré : premier passage silencieux", () => {
   const etat = vierge(); const chap = faireChapitre();
+  const jours = [T0 - 9 * JOUR, T0 - 4 * JOUR, T0].map(t => cleJournee(t));
   for (const it of chap.items) etat.items[it.id] = { s: 40, due: T0 + 30 * JOUR, last: T0, n: 4, ok: 4 };
+  etat.chapitres[chap.id] = { jours: [...jours] };
   G.initialiser(etat);
   assert.deepEqual(G.verifierPlanches(etat, [chap], T0), []);
   assert.ok(etat.gamif.herbier[chap.id].coloriee, "mémorisée quand même");
   const chap2 = faireChapitre("6e-maths-02-b");
   for (const it of chap2.items) etat.items[it.id] = { s: 40, due: T0 + 30 * JOUR, last: T0 };
+  etat.chapitres[chap2.id] = { jours: [...jours] };
   const r = G.appliquerEvenement(etat, { type: "sessionFin", seance: "decouvrir", n: 10, ok: 9 }, T0, { chapitres: [chap, chap2] });
   assert.deepEqual(r.notifications.filter(n => n.type === "planche"), [{ type: "planche", chapitre: chap2.id, etat: "coloriee" }]);
 });
