@@ -30,14 +30,28 @@ export async function chargerModule(niveau, matiere) {
   return p;
 }
 
+const cacheCours = new Map();
+/** Cours illustré d'un module (content/cours/<niveau>/<matiere>.js), ou null s'il n'existe pas encore. */
+export function chargerCours(niveau, matiere) {
+  const cle = `${niveau}-${matiere}`;
+  if (!cacheCours.has(cle)) cacheCours.set(cle, import(`../content/cours/${niveau}/${matiere}.js`).then(m => m.default).catch(() => null));
+  return cacheCours.get(cle);
+}
+export async function coursDuChapitre(chapitre) {
+  const c = await chargerCours(chapitre.niveau, chapitre.matiere);
+  return c?.chapitres?.[chapitre.id] || null;
+}
+
 export async function chargerNiveau(niveau) {
   const mods = await Promise.all(matieresDuNiveau(niveau).map(m => chargerModule(niveau, m)));
   return mods.filter(Boolean);
 }
 
 export async function trouverChapitre(chapId) {
-  const [niveau, matiere] = chapId.split("-");
-  const mod = await chargerModule(niveau, matiere);
+  // Les matières peuvent contenir un tiret (physique-chimie) : on cherche le module dont l'id préfixe le chapitre.
+  const m = MODULES.filter(x => chapId.startsWith(`${x.niveau}-${x.matiere}-`)).sort((a, b) => b.matiere.length - a.matiere.length)[0];
+  if (!m) return null;
+  const mod = await chargerModule(m.niveau, m.matiere);
   return mod?.chapitres.find(c => c.id === chapId) || null;
 }
 
