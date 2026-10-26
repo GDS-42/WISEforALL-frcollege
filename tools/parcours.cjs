@@ -59,6 +59,9 @@ async function seance(page, route) {
 
   await seance(page, "#/session/decouvrir/5e-maths-02-nombres-relatifs");
   await page.waitForTimeout(1200); await page.screenshot({ path: S + "08-fin.png", fullPage: true });
+  // « Encore une séance » pointe vers la page en cours : elle doit tout de même relancer une séance.
+  await page.click("text=Encore une séance");
+  try { await page.waitForSelector(".fiche-question, .seance-vide", { timeout: 5000 }); } catch { erreurs.push("[séance] « Encore une séance » ne relance rien"); }
 
   await ecran("#/jardin", ".scene-jardin", "09-jardin-apres");
   await ecran("#/herbier", "main h1, main h2", "10-herbier");
