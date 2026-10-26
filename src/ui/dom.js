@@ -32,14 +32,18 @@ export function echapper(s) {
 /** Mise en forme légère : **gras**, *italique*, sauts de ligne. Le texte est échappé d'abord. */
 export function md(texte) {
   let t = echapper(texte);
+  t = t.replace(/==(.+?)==/g, "<mark>$1</mark>");
   t = t.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
   t = t.replace(/(^|[^*])\*([^*\n]+?)\*/g, "$1<em>$2</em>");
-  t = t.replace(/\n/g, "<br>");
+  t = t.replace(/\n\n+/g, "</p><p>").replace(/\n/g, "<br>");
   return t;
 }
 
 export function mdEl(texte, tag = "span", cls = "") {
-  return h(tag, { class: `md ${cls}`.trim(), html: md(texte) });
+  const html = md(texte);
+  // Plusieurs paragraphes : on enveloppe dans des <p>.
+  if (html.includes("</p><p>")) return h("div", { class: `md ${cls}`.trim(), html: `<p>${html}</p>` });
+  return h(tag, { class: `md ${cls}`.trim(), html });
 }
 
 export function svg(tag, attrs = {}, ...enfants) {
