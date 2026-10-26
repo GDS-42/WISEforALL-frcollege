@@ -520,7 +520,7 @@ export default {
           q: "Associe chaque loisir à sa traduction.", paires: [["踢足球 tī zúqiú", "jouer au football"], ["打篮球 dǎ lánqiú", "jouer au basket"], ["游泳 yóuyǒng", "nager"], ["看书 kàn shū", "lire"], ["听音乐 tīng yīnyuè", "écouter de la musique"], ["唱歌 chàng gē", "chanter"]],
           explication: "Beaucoup de loisirs sont formés d'un verbe + un nom : 看 (regarder) + 书 (livre) = lire ; 听 (écouter) + 音乐 (musique) ; 唱 (chanter) + 歌 (chanson)." },
         { id: "5e-chinois-08-loisirs-gouts-q03", type: "qcm", competence: "5e-chinois-08-loisirs-gouts-c1", difficulte: 2,
-          q: "Pour dire « jouer au football », quel verbe emploie-t-on devant 足球 zúqiú ?", choix: ["踢 tī (frapper du pied)", "打 dǎ (frapper de la main)", "弹 tán (pincer des cordes)", "唱 chàng (chanter)"], bonne: 0,
+          q: "Pour dire « jouer au football », quel verbe emploie-t-on devant 足球 zúqiú ?", choix: ["踢 tī (frapper du pied)", "打 dǎ (frapper de la main)", "弹 tán (jouer d'un instrument du bout des doigts)", "唱 chàng (chanter)"], bonne: 0,
           explication: "Au football, on frappe le ballon du pied : **踢足球** tī zúqiú. 打 sert pour les jeux de balle à la main (打篮球), 弹 pour les instruments comme le piano (弹钢琴 tán gāngqín). Remarque la clé du pied 足 dans 踢." },
         { id: "5e-chinois-08-loisirs-gouts-q04", type: "trous", competence: "5e-chinois-08-loisirs-gouts-c1", difficulte: 2,
           texte: "我喜欢 ___ 篮球。(J'aime jouer au basket.)", reponses: [["打", "dǎ"]],

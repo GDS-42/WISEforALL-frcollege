@@ -1,6 +1,7 @@
 // ÉCLORE — Cours illustrés, 4e Chinois (LV2, deuxième année, niveau A1+ vers A2).
 // Mandarin standard, caractères simplifiés + pinyin. Mêmes conventions que content/4e/chinois.js :
-// tons d'origine, sauf pour 一 et 不, notés au ton réellement prononcé (一个 yí gè, 一本 yì běn, 不是 bú shì).
+// tons d'origine, sauf pour 一 et 不, notés au ton réellement prononcé (一个 yí ge, 一本 yì běn, 不是 bú shì) ;
+// 个 après un nombre ou un démonstratif est au ton neutre (yí ge) ; on note gè seulement quand il est cité seul.
 // Schéma : docs/COURS.md. Validation : node tools/validate-cours.mjs content/cours/4e/chinois.js
 
 // ——— Petits outils pour les schémas SVG ———
@@ -80,7 +81,7 @@ const SVG_CORPS = `<svg viewBox="0 0 400 310"><ellipse class="aplat" ${EN} cx="1
 
 // Chapitre 9 : le calendrier 上 / 下.
 const mois = (y, car, pin, fr, pig) => `<rect class="${pig ? "aplat" : "aplat-papier"}" ${EN} x="60" y="${y}" width="230" height="52" rx="8"/>${zh(80, y + 28, car, "", { a: "start", n: 20, cl: pig ? "texte-pigment" : "texte" })}${tx(80, y + 45, pin, { a: "start", cl: "texte-pigment" })}${tx(275, y + 32, fr, { a: "end", cl: "texte" })}`;
-const SVG_CALENDRIER = `<svg viewBox="0 0 400 214">${mois(14, "上个月", "shàng gè yuè", "le mois dernier")}${mois(80, "这个月", "zhège yuè", "ce mois-ci", true)}${mois(146, "下个月", "xià gè yuè", "le mois prochain")}${zh(312, 36, "上", "shàng", { a: "start" })}${tx(312, 52, "en haut :", { a: "start" })}${tx(312, 65, "avant", { a: "start" })}<line class="trait" x1="324" y1="76" x2="324" y2="146" marker-end="url(#fl)"/>${zh(312, 172, "下", "xià", { a: "start" })}${tx(312, 188, "en bas :", { a: "start" })}${tx(312, 201, "après", { a: "start" })}</svg>`;
+const SVG_CALENDRIER = `<svg viewBox="0 0 400 214">${mois(14, "上个月", "shàng ge yuè", "le mois dernier")}${mois(80, "这个月", "zhège yuè", "ce mois-ci", true)}${mois(146, "下个月", "xià ge yuè", "le mois prochain")}${zh(312, 36, "上", "shàng", { a: "start" })}${tx(312, 52, "en haut :", { a: "start" })}${tx(312, 65, "avant", { a: "start" })}<line class="trait" x1="324" y1="76" x2="324" y2="146" marker-end="url(#fl)"/>${zh(312, 172, "下", "xià", { a: "start" })}${tx(312, 188, "en bas :", { a: "start" })}${tx(312, 201, "après", { a: "start" })}</svg>`;
 
 // Chapitre 10 : l'année lunaire.
 const moisLunaires = Array.from({ length: 12 }, (_, i) => `${i ? `<line class="trait-fin" x1="${20 + 30 * i}" y1="104" x2="${20 + 30 * i}" y2="124"/>` : ""}${tx(35 + 30 * i, 118, String(i + 1))}`).join("");
@@ -108,9 +109,9 @@ export default {
           blocs: [
             { t: "texte", md: "En français, tu dis « trois livres ». En chinois, le nombre ne se colle jamais directement au nom : on glisse entre les deux un **classificateur** (量词 liàngcí, littéralement « mot de mesure »).\n\nLe français connaît un peu ce mécanisme : on dit « trois *feuilles* de papier », « deux *tasses* de thé », « une *paire* de chaussures ». Le chinois fait la même chose ==pour tous les noms==, même pour les livres et les personnes." },
             { t: "schema", titre: "Nombre + classificateur + nom", svg: SVG_STRUCTURE, legende: "三本书 sān běn shū : trois livres. Le classificateur 本 běn se place entre le nombre 三 sān et le nom 书 shū. Sans lui, la phrase est fausse." },
-            { t: "propriete", titre: "La structure de base", md: "**nombre + classificateur + nom**\n三个人 sān gè rén : trois personnes\n三本书 sān běn shū : trois livres\nOn ne dit jamais *三书." },
-            { t: "definition", terme: "个 gè, le classificateur le plus fréquent", md: "Il s'emploie pour les **personnes** et pour beaucoup d'objets qui n'ont pas de classificateur particulier : 一个朋友 yí gè péngyou (un ami), 一个苹果 yí gè píngguǒ (une pomme), 一个书包 yí gè shūbāo (un cartable).\nAttention : 个 ne remplace pas les autres classificateurs. On dit 一本书, jamais *一个书." },
-            { t: "verifie", q: "Comment dit-on « trois amis » ?", choix: ["三朋友", "三个朋友", "朋友三个", "个三朋友"], bonne: 1, explication: "L'ordre est nombre + classificateur + nom : 三个朋友 sān gè péngyou. Les personnes prennent 个. Sans classificateur (三朋友), la phrase est fausse." },
+            { t: "propriete", titre: "La structure de base", md: "**nombre + classificateur + nom**\n三个人 sān ge rén : trois personnes\n三本书 sān běn shū : trois livres\nOn ne dit jamais *三书." },
+            { t: "definition", terme: "个 gè, le classificateur le plus fréquent", md: "Il s'emploie pour les **personnes** et pour beaucoup d'objets qui n'ont pas de classificateur particulier : 一个朋友 yí ge péngyou (un ami), 一个苹果 yí ge píngguǒ (une pomme), 一个书包 yí ge shūbāo (un cartable).\nAttention : 个 ne remplace pas les autres classificateurs. On dit 一本书, jamais *一个书." },
+            { t: "verifie", q: "Comment dit-on « trois amis » ?", choix: ["三朋友", "三个朋友", "朋友三个", "个三朋友"], bonne: 1, explication: "L'ordre est nombre + classificateur + nom : 三个朋友 sān ge péngyou. Les personnes prennent 个. Sans classificateur (三朋友), la phrase est fausse." },
           ],
         },
         {
@@ -125,7 +126,7 @@ export default {
               ["杯 bēi", "un verre, une tasse de…", "一杯水 yì bēi shuǐ : un verre d'eau\n一杯茶 yì bēi chá : une tasse de thé\n两杯咖啡 liǎng bēi kāfēi : deux cafés"],
               ["件 jiàn", "les vêtements du haut, les affaires", "一件衣服 yí jiàn yīfu : un vêtement\n一件衬衫 yí jiàn chènshān : une chemise\n一件事 yí jiàn shì : une chose à faire, une affaire"],
               ["条 tiáo", "les objets longs et souples", "一条裤子 yì tiáo kùzi : un pantalon\n一条鱼 yì tiáo yú : un poisson\n一条河 yì tiáo hé : une rivière ; 一条路 yì tiáo lù : une route"],
-              ["个 gè", "les personnes, de nombreux objets", "一个人 yí gè rén : une personne\n一个苹果 yí gè píngguǒ : une pomme"],
+              ["个 gè", "les personnes, de nombreux objets", "一个人 yí ge rén : une personne\n一个苹果 yí ge píngguǒ : une pomme"],
             ] },
             { t: "attention", md: "Trois pièges classiques :\n• le **poisson** prend 条, parce qu'il est long, alors que la plupart des animaux prennent 只 : 一条鱼 yì tiáo yú ;\n• la **table** et le **lit** prennent 张, à cause de leur grande surface plate : 一张桌子, 一张床 ;\n• le **pantalon** prend 条 et non 件, réservé au haut du corps : 一条裤子, mais 一件衬衫." },
             { t: "verifie", q: "Quel classificateur emploie-t-on avec 照片 zhàopiàn (photo) ?", choix: ["本 běn", "张 zhāng", "条 tiáo", "杯 bēi"], bonne: 1, explication: "Une photo est plate, comme une feuille de papier : 一张照片 yì zhāng zhàopiàn. 本 sert pour les livres, 条 pour les objets longs, 杯 pour les boissons." },
@@ -134,7 +135,7 @@ export default {
         {
           titre: "两, 这, 那, 几 se placent devant le classificateur",
           blocs: [
-            { t: "propriete", titre: "« Deux » devant un classificateur : 两", md: "Devant un classificateur, « deux » se dit **两 liǎng**, jamais 二 èr : 两本书 liǎng běn shū (deux livres), 两个朋友 liǎng gè péngyou (deux amis).\n二 èr sert pour compter (一、二、三…), à l'intérieur des nombres (十二 shí'èr, douze ; 二十 èrshí, vingt) et pour les rangs (第二 dì-èr, deuxième). On dit donc 十二本书 shí'èr běn shū (douze livres)." },
+            { t: "propriete", titre: "« Deux » devant un classificateur : 两", md: "Devant un classificateur, « deux » se dit **两 liǎng**, jamais 二 èr : 两本书 liǎng běn shū (deux livres), 两个朋友 liǎng ge péngyou (deux amis).\n二 èr sert pour compter (一、二、三…), à l'intérieur des nombres (十二 shí'èr, douze ; 二十 èrshí, vingt) et pour les rangs (第二 dì-èr, deuxième). On dit donc 十二本书 shí'èr běn shū (douze livres)." },
             { t: "tableau", titre: "Les petits mots qui précèdent le classificateur", entetes: ["Mot", "Sens", "Exemple"], lignes: [
               ["这 zhè", "ce…-ci", "这本书 zhè běn shū : ce livre-ci"],
               ["那 nà", "ce…-là", "那只猫 nà zhī māo : ce chat-là"],
@@ -149,9 +150,9 @@ export default {
         {
           titre: "Bien prononcer 一 (et deux 3es tons de suite)",
           blocs: [
-            { t: "texte", md: "Le caractère 一 change de ton selon la syllabe qui le suit. Dans ce cours, le pinyin note le ton réellement prononcé : 一个 **yí** gè, mais 一本 **yì** běn." },
+            { t: "texte", md: "Le caractère 一 change de ton selon la syllabe qui le suit. Dans ce cours, le pinyin note le ton réellement prononcé : 一个 **yí** ge, mais 一本 **yì** běn." },
             { t: "tableau", titre: "Le ton de 一", entetes: ["Ce qui suit 一", "On dit", "Exemples"], lignes: [
-              ["un 4e ton", "**yí** (2e ton)", "一个 yí gè, 一件 yí jiàn, 一样 yíyàng"],
+              ["un 4e ton", "**yí** (2e ton)", "一个 yí ge (个 gè est au 4e ton), 一件 yí jiàn, 一样 yíyàng"],
               ["un 1er ton", "**yì** (4e ton)", "一杯 yì bēi, 一张 yì zhāng, 一只 yì zhī"],
               ["un 2e ton", "**yì** (4e ton)", "一条 yì tiáo, 一直 yìzhí"],
               ["un 3e ton", "**yì** (4e ton)", "一本 yì běn, 一点儿 yìdiǎnr"],
@@ -188,8 +189,8 @@ export default {
             { t: "tableau", titre: "Des mots pour situer dans le passé", entetes: ["Chinois", "Pinyin", "Sens"], lignes: [
               ["昨天", "zuótiān", "hier"],
               ["今天", "jīntiān", "aujourd'hui"],
-              ["上个星期", "shàng gè xīngqī", "la semaine dernière"],
-              ["上个月", "shàng gè yuè", "le mois dernier"],
+              ["上个星期", "shàng ge xīngqī", "la semaine dernière"],
+              ["上个月", "shàng ge yuè", "le mois dernier"],
               ["去年", "qùnián", "l'année dernière"],
             ] },
             { t: "astuce", md: "Tous ces mots contiennent un repère : 天 tiān (jour), 星期 xīngqī (semaine), 月 yuè (mois), 年 nián (année). Et **上 shàng** (« dessus ») marque ce qui précède : 上个星期, la semaine d'avant." },
@@ -280,7 +281,7 @@ export default {
             { t: "propriete", titre: "Deux constructions en miroir", md: "**objet connu + 在 + lieu** : on dit où se trouve une chose dont on parle déjà. 书在桌子上。Shū zài zhuōzi shàng. Le livre est sur la table.\n**lieu + 有 yǒu + objet** : on présente ce qu'il y a dans un lieu. 桌子上有一本书。Zhuōzi shàng yǒu yì běn shū. Sur la table, il y a un livre." },
             { t: "schema", titre: "Le même livre, deux phrases", svg: SVG_ZAI_YOU, legende: "Avec 在, la phrase part de l'objet. Avec 有, elle part du lieu et présente ce qu'on y découvre, souvent avec un nombre et un classificateur." },
             { t: "exemple", titre: "Décrire sa chambre", md: "我的房间里有一张床和一张桌子。桌子上有三本书，床下有两只猫！\nWǒ de fángjiān lǐ yǒu yì zhāng chuáng hé yì zhāng zhuōzi. Zhuōzi shàng yǒu sān běn shū, chuáng xià yǒu liǎng zhī māo !\nDans ma chambre (房间 fángjiān), il y a un lit et une table. Sur la table, il y a trois livres, et sous le lit, deux chats !" },
-            { t: "verifie", q: "Comment dit-on « Derrière l'école, il y a un parc » ?", choix: ["学校后边有一个公园。", "一个公园有学校后边。", "学校后边在一个公园。", "有学校后边一个公园。"], bonne: 0, explication: "On présente ce qu'il y a dans un lieu : lieu (学校后边) + 有 + objet (一个公园 yí gè gōngyuán, un parc)." },
+            { t: "verifie", q: "Comment dit-on « Derrière l'école, il y a un parc » ?", choix: ["学校后边有一个公园。", "一个公园有学校后边。", "学校后边在一个公园。", "有学校后边一个公园。"], bonne: 0, explication: "On présente ce qu'il y a dans un lieu : lieu (学校后边) + 有 + objet (一个公园 yí ge gōngyuán, un parc)." },
           ],
         },
         {
@@ -350,12 +351,12 @@ export default {
               ["往右拐", "wǎng yòu guǎi", "tourner à droite"],
               ["到…", "dào…", "arriver à, jusqu'à…"],
               ["路口", "lùkǒu", "le carrefour"],
-              ["第二个路口", "dì-èr gè lùkǒu", "le deuxième carrefour"],
+              ["第二个路口", "dì-èr ge lùkǒu", "le deuxième carrefour"],
               ["然后", "ránhòu", "ensuite"],
               ["左边 / 右边", "zuǒbian / yòubian", "à gauche / à droite"],
             ] },
-            { t: "schema", titre: "Le chemin jusqu'à la station de métro", svg: SVG_PLAN, legende: "Tu pars d'en bas : 一直走 (tout droit), tu passes le premier carrefour (第一个路口 dì-yī gè lùkǒu), puis au deuxième (第二个路口 dì-èr gè lùkǒu) tu tournes à gauche (往左拐). La station de métro (地铁站 dìtiězhàn) est à côté de la banque (银行 yínháng). Autour : l'hôpital (医院), le parc (公园), le supermarché (超市) et l'école (学校)." },
-            { t: "exemple", titre: "Le dialogue du plan", md: "— 请问，地铁站怎么走？\n— 一直走，到第二个路口往左拐，地铁站就在银行旁边。\nQǐngwèn, dìtiězhàn zěnme zǒu ? — Yìzhí zǒu, dào dì-èr gè lùkǒu wǎng zuǒ guǎi, dìtiězhàn jiù zài yínháng pángbiān.\n— Pardon, pour aller à la station de métro ? — Va tout droit, au deuxième carrefour tourne à gauche : la station est juste (就 jiù) à côté de la banque." },
+            { t: "schema", titre: "Le chemin jusqu'à la station de métro", svg: SVG_PLAN, legende: "Tu pars d'en bas : 一直走 (tout droit), tu passes le premier carrefour (第一个路口 dì-yī ge lùkǒu), puis au deuxième (第二个路口 dì-èr ge lùkǒu) tu tournes à gauche (往左拐). La station de métro (地铁站 dìtiězhàn) est à côté de la banque (银行 yínháng). Autour : l'hôpital (医院), le parc (公园), le supermarché (超市) et l'école (学校)." },
+            { t: "exemple", titre: "Le dialogue du plan", md: "— 请问，地铁站怎么走？\n— 一直走，到第二个路口往左拐，地铁站就在银行旁边。\nQǐngwèn, dìtiězhàn zěnme zǒu ? — Yìzhí zǒu, dào dì-èr ge lùkǒu wǎng zuǒ guǎi, dìtiězhàn jiù zài yínháng pángbiān.\n— Pardon, pour aller à la station de métro ? — Va tout droit, au deuxième carrefour tourne à gauche : la station est juste (就 jiù) à côté de la banque." },
             { t: "astuce", md: "左 zuǒ (gauche) et 右 yòu (droite) se ressemblent. 右 contient 口, la bouche : pense à la main droite qui porte les baguettes à la bouche. 左 contient 工. On entend aussi 往左转 wǎng zuǒ zhuǎn : 转 et 拐 veulent tous deux dire « tourner »." },
           ],
         },
@@ -506,7 +507,7 @@ export default {
 
     // ───────────────────────── 7. Météo et saisons ─────────────────────────
     "4e-chinois-07-meteo-saisons": {
-      accroche: "En janvier, il fait souvent −20 °C à Harbin, dans le nord-est, pendant qu'à Canton, dans le sud, le thermomètre tourne autour de 15 °C. La Chine est si vaste que la météo change complètement d'une région à l'autre : apprends à en parler !",
+      accroche: "En janvier, il fait souvent −20 °C à Harbin, dans le nord-est, pendant qu'à Canton, dans le sud, le thermomètre tourne en moyenne autour de 14 °C. La Chine est si vaste que la météo change complètement d'une région à l'autre : apprends à en parler !",
       objectifs: [
         "Nommer les saisons et dire sa saison préférée",
         "Décrire le temps qu'il fait",
@@ -657,8 +658,8 @@ export default {
             { t: "texte", md: "Comme pour le passé, le verbe ne change pas : c'est un **mot de temps**, placé avant le verbe, qui annonce le futur. 我明天去北京。Wǒ míngtiān qù Běijīng. Demain, je vais à Pékin." },
             { t: "tableau", titre: "Passé, présent, futur", entetes: ["Repère", "Passé", "Présent", "Futur"], lignes: [
               ["le jour", "昨天 zuótiān : hier", "今天 jīntiān : aujourd'hui", "明天 míngtiān : demain"],
-              ["la semaine", "上个星期 shàng gè xīngqī", "这个星期 zhège xīngqī", "下个星期 xià gè xīngqī"],
-              ["le mois", "上个月 shàng gè yuè", "这个月 zhège yuè", "下个月 xià gè yuè"],
+              ["la semaine", "上个星期 shàng ge xīngqī", "这个星期 zhège xīngqī", "下个星期 xià ge xīngqī"],
+              ["le mois", "上个月 shàng ge yuè", "这个月 zhège yuè", "下个月 xià ge yuè"],
               ["l'année", "去年 qùnián", "今年 jīnnián", "明年 míngnián"],
             ] },
             { t: "schema", titre: "上 avant, 下 après", svg: SVG_CALENDRIER, legende: "Imagine un calendrier qu'on lit de haut en bas : 上 shàng (en haut) désigne ce qui précède, 下 xià (en bas) ce qui suit." },
@@ -668,7 +669,7 @@ export default {
               "以后 yǐhòu : plus tard, à l'avenir",
               "暑假 shǔjià : les vacances d'été ; 寒假 hánjià : les vacances d'hiver",
             ] },
-            { t: "verifie", q: "Que signifie 下个月 xià gè yuè ?", choix: ["le mois dernier", "ce mois-ci", "le mois prochain"], bonne: 2, explication: "下 indique ce qui suit : 下个月 = le mois prochain. Le mois dernier se dit 上个月 shàng gè yuè." },
+            { t: "verifie", q: "Que signifie 下个月 xià ge yuè ?", choix: ["le mois dernier", "ce mois-ci", "le mois prochain"], bonne: 2, explication: "下 indique ce qui suit : 下个月 = le mois prochain. Le mois dernier se dit 上个月 shàng ge yuè." },
           ],
         },
         {
