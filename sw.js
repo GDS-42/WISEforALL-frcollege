@@ -1,6 +1,6 @@
 // ÉCLORE — service worker : l'application fonctionne hors ligne une fois visitée.
-const VERSION = "eclore-v2";
-const COQUILLE = ["./", "./index.html", "./manifest.json", "./src/styles/fonts.css", "./src/styles/base.css", "./src/styles/ecrans.css", "./src/styles/session.css", "./src/main.js", "./assets/icone.svg"];
+const VERSION = "eclore-v3";
+const COQUILLE = ["./", "./index.html", "./manifest.json", "./src/styles/fonts.css", "./src/styles/base.css", "./src/styles/ecrans.css", "./src/styles/session.css", "./src/styles/cours.css", "./src/styles/carte.css", "./src/main.js", "./assets/icone.svg"];
 self.addEventListener("install", (e) => { e.waitUntil(caches.open(VERSION).then(c => c.addAll(COQUILLE)).then(() => self.skipWaiting())); });
 self.addEventListener("activate", (e) => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== VERSION).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener("fetch", (e) => {
