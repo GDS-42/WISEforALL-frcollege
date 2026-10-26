@@ -11,7 +11,7 @@ export const MATIERES = {
   "svt":               { nom: "Sciences de la vie et de la Terre", court: "SVT", couleur: "#5a8a3a", plante: "feuille", emoji: "🌱", cycles: ["6e","5e","4e","3e"] },
   "physique-chimie":   { nom: "Physique-Chimie",     court: "PC",   couleur: "#b86f32", plante: "lanterne",  emoji: "⚗️", cycles: ["6e","5e","4e","3e"] },
   "technologie":       { nom: "Technologie",         court: "Techno", couleur: "#56707e", plante: "engrenage", emoji: "⚙️", cycles: ["6e","5e","4e","3e"] },
-  "anglais":           { nom: "Anglais",             court: "Angl", couleur: "#a83e48", plante: "bruyere",   emoji: "🇬🇧", cycles: ["6e","5e","4e","3e"] },
+  "anglais":           { nom: "Anglais",             court: "Angl", couleur: "#a83e48", plante: "bruyere",   emoji: "🇬🇧", cycles: ["6e","5e","4e","3e"], langue: "en-GB" },
   "espagnol":          { nom: "Espagnol (LV2)",      court: "Esp",  couleur: "#cc8a24", plante: "cactus",    emoji: "🇪🇸", cycles: ["5e","4e","3e"], lv2: true, langue: "es-ES" },
   "allemand":          { nom: "Allemand (LV2)",      court: "All",  couleur: "#3a8ac6", plante: "edelweiss", emoji: "🇩🇪", cycles: ["5e","4e","3e"], lv2: true, langue: "de-DE" },
   "arabe":             { nom: "Arabe (LV2)",         court: "Ar",   couleur: "#a07cc0", plante: "jasmin",    emoji: "🌙", cycles: ["5e","4e","3e"], lv2: true, langue: "ar" },

@@ -3,6 +3,7 @@ import { h, vider, toast } from "./ui/dom.js";
 import { icone } from "./ui/icones.js";
 import { listerProfils, profilActifId, chargerProfil, creerStore } from "./store.js";
 import { activerSon } from "./audio.js";
+import { reglerVoix } from "./lecture.js";
 import { initialiser, niveauDepuisXp, synchroniserXp } from "./gamification.js";
 import { injecterDefs } from "./ui/defs.js";
 
@@ -53,6 +54,7 @@ function appliquerPrefs(e) {
   racine.dataset.animations = p.animations ? "1" : "0";
   racine.style.setProperty("--taille", String(p.taille || 1));
   activerSon(!!p.son);
+  reglerVoix(p.voix);
 }
 matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", () => { if (app.etat) appliquerPrefs(app.etat); });
 

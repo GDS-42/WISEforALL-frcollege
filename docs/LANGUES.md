@@ -34,7 +34,37 @@ Niveaux CECRL visés (programme du cycle 4, LV2) : 5e ≈ A1, 4e ≈ A1+/A2, 3e 
   avec ou sans espaces, et ignore la ponctuation pleine chasse (，。？！). Les tons s'évaluent par qcm/assoc.
 - L'écriture arabe et les caractères chinois sont détectés automatiquement à l'affichage (bonne police, sens de
   lecture droite-à-gauche pour l'arabe, taille agrandie) : écris-les directement dans le texte, sans balise.
-- La lecture à voix haute utilise de-DE, ar et zh-CN automatiquement selon la matière.
+- La lecture à voix haute lit le texte en français et prononce l'arabe et le chinois (écriture) avec une voix
+  de la langue, automatiquement. Pour l'anglais, l'espagnol et l'allemand, voir la section suivante.
+
+## Lecture à voix haute : baliser ce qui se prononce dans la langue étudiée
+
+Les boutons « Écouter » lisent tout en français (voix de l'appareil, la plus naturelle disponible). Ce qui doit
+être prononcé dans la langue étudiée est balisé : `[[Good morning]]` est lu par une voix anglaise dans un module
+d'anglais, espagnole dans un module d'espagnol, allemande dans un module d'allemand. Les balises ne s'affichent
+jamais. Le moteur est `src/lecture.js`.
+
+- `[[…]]` : langue de la matière du module. `[[en:…]]`, `[[es:…]]`, `[[de:…]]`, `[[fr:…]]` : langue explicite
+  (par ex. l'anglais *thirteen* cité dans un cours d'allemand : `*[[en:thirteen]]*`).
+- **Où** : seulement dans les champs lus à voix haute. Questions : `q`, `texte` (trous), `recto`, `explication`.
+  Cours : titres de section et, dans les blocs, `md`, `terme`, `titre`, `texte`, `items`, `etapes`, `entetes`,
+  cellules de `lignes`, `legende`, et `q`, `choix`, `explication` des `verifie`. **Jamais** dans ce qui sert à
+  corriger (`choix` des questions, `reponses`, `elements`, `paires`, `verso`…) : le validateur le refuse.
+- **Quoi** : tout ce qui doit être *prononcé* dans la langue étudiée : exemples, mots de vocabulaire, phrases
+  modèles, dialogues, formes de conjugaison, cellules de tableau et choix de `verifie` écrits dans la langue,
+  énoncés et textes à trous rédigés dans la langue (y compris les `___`, lus comme une pause).
+- **Pas** : les explications en français, les traductions françaises (souvent entre « »), les termes de
+  grammaire français, les nombres seuls, les noms propres prononcés pareil en français, les translittérations
+  et le pinyin (lus en français), l'écriture arabe et chinoise (détectée seule).
+- **Des passages longs** : balise la phrase entière, ponctuation comprise (`[[Are you ready?]]`), plutôt que mot à
+  mot ; chaque changement de voix marque une courte pause. Deux mots voisins de la même langue séparés par une
+  virgule ou un « / » peuvent être balisés ensemble (`[[he / she / it is]]`).
+- Les balises se combinent avec la mise en forme dans n'importe quel ordre : `**[[Hello]]**` ou `[[**Hello**]]`.
+- Pas d'espace juste après `[[` ni juste avant `]]`, pas de balise vide ni imbriquée.
+
+Outil : `node tools/annotations.mjs extraire|appliquer|signaler <fichier>` (lot JSON de textes balisés ; refuse
+toute modification du texte lui-même) et `node tools/annotations.mjs controler` (contenu identique au dernier
+commit, balises retirées).
 
 ## Exigences de qualité (la demande insiste : « soit soigneux et vérifie »)
 - Exactitude linguistique absolue : orthographe, genres, déclinaisons, conjugaisons, harakat, tons, traits,

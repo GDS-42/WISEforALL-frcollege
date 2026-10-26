@@ -1,4 +1,5 @@
 // ÉCLORE — Utilitaires DOM minimalistes (pas de framework : tout reste lisible et sans dépendance).
+import { retirerBalises, RE_ARABE, RE_SINO } from "../lecture.js";
 
 export function h(tag, attrs = {}, ...enfants) {
   const el = document.createElement(tag);
@@ -33,9 +34,9 @@ export function echapper(s) {
   return String(s ?? "").replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
 
-/** Mise en forme légère : **gras**, *italique*, sauts de ligne. Le texte est échappé d'abord. */
+/** Mise en forme légère : **gras**, *italique*, sauts de ligne. Le texte est échappé d'abord ; les balises de lecture [[…]] sont retirées. */
 export function md(texte) {
-  let t = echapper(texte);
+  let t = echapper(retirerBalises(texte));
   t = t.replace(/==(.+?)==/g, "<mark>$1</mark>");
   t = t.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
   t = t.replace(/(^|[^*])\*([^*\n]+?)\*/g, "$1<em>$2</em>");
@@ -44,8 +45,6 @@ export function md(texte) {
 }
 
 // Écritures arabe et chinoise : un <span> avec la langue, le sens de lecture et une police adaptée.
-const RE_ARABE = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]+(?:[ \u00A0]+[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]+)*/g;
-const RE_SINO = /[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]+(?:[\u3000-\u303F\uFF00-\uFFEF\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]+)*/g;
 export function marquerEcritures(html) {
   if (!/[\u0600-\u06FF\u3400-\u9FFF\uF900-\uFAFF\uFB50-\uFEFF]/.test(html)) return html;
   return html.split(/(<[^>]+>)/).map(seg => seg.startsWith("<") ? seg : seg

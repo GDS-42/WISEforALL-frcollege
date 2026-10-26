@@ -98,4 +98,5 @@ Pour l'histoire ancienne, préfère `reperes` (villes, sites) et `traits` (route
 5. Le cours **explique** (pourquoi, comment) au lieu de seulement lister. Il part du concret,
    donne des exemples, anticipe les erreurs. Il couvre tout ce que les questions du chapitre
    évaluent et les compétences listées.
-6. Langues vivantes : explications en français, exemples dans la langue cible.
+6. Langues vivantes : explications en français, exemples dans la langue cible. Balise ce qui se prononce dans
+   la langue cible (`[[Good morning]]`) pour que « Écouter » le lise avec la bonne voix : voir docs/LANGUES.md.

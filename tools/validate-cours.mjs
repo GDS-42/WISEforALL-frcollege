@@ -4,6 +4,8 @@ import { readdirSync, existsSync } from "node:fs";
 import { resolve, join, relative } from "node:path";
 import { pathToFileURL } from "node:url";
 import { NIVEAUX } from "../content/matieres.js";
+import { retirerBalises } from "../src/lecture.js";
+import { verifierBalisesModule } from "./balises.mjs";
 
 const root = resolve(new URL("..", import.meta.url).pathname);
 const REGIONS = ["ile-de-france", "centre-val-de-loire", "bourgogne-franche-comte", "normandie", "hauts-de-france", "grand-est", "pays-de-la-loire", "bretagne", "nouvelle-aquitaine", "occitanie", "auvergne-rhone-alpes", "provence-alpes-cote-d-azur", "corse"];
@@ -19,7 +21,7 @@ let errors = 0, warnings = 0, totalMots = 0, totalChap = 0, totalVisuels = 0;
 const err = (m) => { errors++; console.log(`  ✖ ${m}`); };
 const warn = (m) => { warnings++; console.log(`  ⚠ ${m}`); };
 const str = (s, min = 1) => typeof s === "string" && s.trim().length >= min;
-const mots = (s) => (String(s || "").match(/[\p{L}\p{N}]+/gu) || []).length;
+const mots = (s) => (retirerBalises(s || "").match(/[\p{L}\p{N}]+/gu) || []).length;
 
 function checkSvg(svg, w) {
   if (!str(svg, 20)) return err(`${w} : svg manquant`);
@@ -100,6 +102,7 @@ for (const f of files) {
   const [niveau, fichier] = rel.split("/").slice(-2);
   const matiere = fichier.replace(/\.js$/, "");
   if (cours?.id !== `${niveau}-${matiere}`) err(`id attendu « ${niveau}-${matiere} »`);
+  for (const m of verifierBalisesModule(cours, true)) err(m);
   let mod;
   try { mod = (await import(pathToFileURL(join(root, "content", niveau, `${matiere}.js`)).href)).default; } catch { err("module de questions correspondant introuvable"); continue; }
   const ids = new Set(mod.chapitres.map(c => c.id));

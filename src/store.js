@@ -10,7 +10,7 @@ export function etatVierge(profil) {
   return {
     version: VERSION_ETAT,
     profil: { id: profil.id, prenom: profil.prenom, niveau: profil.niveau, lv2: profil.lv2 || "espagnol", cree: Date.now(), graine: profil.graine ?? Math.floor(Math.random() * 1e9) },
-    prefs: { theme: "auto", son: true, animations: true, dys: false, taille: 1, tts: false, objectifItems: 15, confiance: true },
+    prefs: { theme: "auto", son: true, animations: true, dys: false, taille: 1, tts: false, voix: "", objectifItems: 15, confiance: true },
     items: {},      // id → état mémoire FSRS + stats { s, d, due, reps, lapses, last, etape, ok, n, conf:[devine,ok], tempsMs }
     comp: {},       // compétence → { elo, n }
     chapitres: {},  // id → { fiche: ts, decouvert: ts, diag: ts }
@@ -67,6 +67,7 @@ function migrer(e) {
   if (!e.jours) e.jours = {};
   if (!e.prefs) e.prefs = etatVierge(e.profil).prefs;
   if (e.prefs.confiance === undefined) e.prefs.confiance = true;
+  if (e.prefs.voix === undefined) e.prefs.voix = ""; // voix française choisie ("" : automatique)
   // v2 : nouvelle charte « Herbier » ; l'ancien thème nuit par défaut devient « auto » (suit l'appareil).
   if ((e.version || 1) < 2 && e.prefs.theme === "nuit") e.prefs.theme = "auto";
   if (!e.cours) e.cours = {};

@@ -4,6 +4,7 @@ import { icone } from "./icones.js";
 import { NIVEAUX } from "../content.js";
 import { secoursDisponible, restaurerSecours } from "../store.js";
 import { boutonsExport, zoneImport, ilYa } from "./sauvegarde.js";
+import { disponible as lectureDisponible, voixFrancaises, surChangementVoix, lire } from "../lecture.js";
 
 export async function ecranReglages(main, params, app) {
   const e = app.etat;
@@ -22,7 +23,8 @@ export async function ecranReglages(main, params, app) {
         h("div", { class: "segments" }, [[0.9, "A"], [1, "A"], [1.15, "A"], [1.3, "A"]].map(([v, l], i) => h("button", { "aria-pressed": Math.abs(p.taille - v) < 0.01 ? "true" : "false", style: { fontSize: `${0.8 + i * 0.15}rem` }, "aria-label": `Taille ${i + 1}`, onclick: () => { set("taille", v); app.rendre(); } }, l)))),
       bascule("dys", "Lecture facilitée (dys)", "Police Atkinson Hyperlegible, interlignes et espacements augmentés."),
       bascule("animations", "Animations", "Désactive les mouvements si tu préfères le calme (ou en cas de sensibilité)."),
-      bascule("tts", "Lecture à voix haute", "Affiche un bouton « Écouter » pour lire les questions et explications (voix de l'appareil).")),
+      bascule("tts", "Lecture à voix haute", "Affiche un bouton « Écouter » pour lire les questions et explications (voix de l'appareil)."),
+      choixVoix(app)),
     h("div", { class: "feuillet" },
       h("h3", {}, "Apprentissage"),
       h("div", { class: "toggle" }, h("div", {}, h("div", {}, "Objectif quotidien"), h("div", { class: "desc" }, "Nombre de questions par séance et par jour. Petit et tenable vaut mieux que grand et abandonné.")),
@@ -37,6 +39,28 @@ export async function ecranReglages(main, params, app) {
     h("div", { class: "feuillet" },
       h("h3", {}, "À propos"),
       h("p", { class: "muet petit", style: { marginBottom: 0 } }, "ÉCLORE est un jeu libre et gratuit pour apprendre le programme du collège. Il s'appuie sur la recherche en sciences cognitives : pratique de récupération, répétition espacée (FSRS), entrelacement, feedback élaboré, métacognition. Il ne collecte aucune donnée.")));
+}
+
+/** Voix française de la lecture à voix haute : la plus naturelle par défaut, ou celle que l'élève préfère. */
+function choixVoix(app) {
+  if (!lectureDisponible()) return null;
+  const sel = h("select", { id: "voix" });
+  const remplir = () => {
+    const voix = voixFrancaises(), choisie = app.etat.prefs.voix || "";
+    sel.replaceChildren(
+      h("option", { value: "" }, voix[0] ? `Automatique (${voix[0].name})` : "Automatique"),
+      ...voix.map(v => h("option", { value: v.name }, v.localService === false ? `${v.name} (en ligne)` : v.name)));
+    if (choisie && !voix.some(v => v.name === choisie)) sel.append(h("option", { value: choisie }, `${choisie} (absente de cet appareil)`));
+    sel.value = choisie;
+  };
+  remplir();
+  app.enQuittant(surChangementVoix(remplir)); // Chrome annonce ses voix après coup
+  sel.addEventListener("change", () => app.store.maj(x => { x.prefs.voix = sel.value; }));
+  return h("div", { class: "toggle choix-voix" },
+    h("div", {}, h("label", { for: "voix" }, "Voix française"),
+      h("div", { class: "desc" }, "Les voix viennent de ton appareil. Pour une voix plus naturelle : le navigateur Edge propose des voix « Natural » ; sur iPhone, iPad ou Mac, va dans Accessibilité › Contenu énoncé › Voix et télécharge une voix française « Premium » ou « améliorée » ; sur Android, installe les données vocales françaises du moteur Google (Paramètres › Synthèse vocale).")),
+    h("div", { class: "rang" }, sel,
+      h("button", { class: "btn discret petit", type: "button", onclick: () => lire("Bonjour ! C'est avec cette voix que je lirai tes cours et tes questions.") }, icone("son", { taille: 16 }), "Essayer")));
 }
 
 /** « Mes données » : sauvegarder dans un fichier, reprendre un fichier, annuler le dernier import. */

@@ -7,6 +7,7 @@ import { corriger, formaterReponseAttendue } from "../grader.js";
 import { stade } from "../scheduler.js";
 import { retourReponse, motFin } from "../mentor.js";
 import { sons } from "../audio.js";
+import { lire } from "../lecture.js";
 import { plantePetite } from "../plants.js";
 import { lume } from "./illustrations.js";
 import { appliquerEvenement, construireEpreuve, combo as comboDe, niveauDepuisXp, quetesDuJour } from "../gamification.js";
@@ -81,7 +82,7 @@ function afficherItem(ctx) {
       h("span", { class: "puce pigment" }, TYPES_LIB[item.type]),
       h("span", { class: "puce" }, statut === "rattrapage" ? "on y revient" : statut === "nouveau" ? "nouvelle graine" : "révision"),
       h("span", { class: "difficulte", title: `Difficulté ${item.difficulte} sur 3`, "aria-label": `Difficulté ${item.difficulte} sur 3` }, ...[1, 2, 3].map(k => h("i", { class: k <= item.difficulte ? "plein" : "" }))),
-      e.prefs.tts ? h("button", { class: "btn discret petit", "aria-label": "Écouter la question", onclick: () => lire(texteQuestion(item), item.matiere) }, icone("son")) : null));
+      e.prefs.tts ? h("button", { class: "btn discret petit", "aria-label": "Écouter la question", onclick: () => lire(texteQuestion(item), { matiere: item.matiere }) }, icone("son")) : null));
   const corps = h("div", { class: "corps-question" });
   poser(carte, corps);
 
@@ -154,7 +155,7 @@ function afficherItem(ctx) {
             fb.classList.replace("ko", "ok"); carte.querySelector(".tampon")?.replaceWith(h("div", { class: "tampon ok", "aria-hidden": "true" }, "juste"));
             sons.juste();
           } }, icone("contester", { taille: 16 }), "J'avais juste") : null,
-          e.prefs.tts && item.explication ? h("button", { class: "btn discret petit", onclick: () => lire(item.explication, "fr") }, icone("son", { taille: 16 }), "Écouter") : null),
+          e.prefs.tts && item.explication ? h("button", { class: "btn discret petit", onclick: () => lire(item.explication, { matiere: item.matiere }) }, icone("son", { taille: 16 }), "Écouter") : null),
         h("button", { class: "btn encre", id: "continuer", onclick: () => { ctx.index++; afficherItem(ctx); } }, ctx.index + 1 >= file.length ? "Terminer" : "Continuer", icone("suivant"))));
     poser(carte, fb);
     setTimeout(() => { document.getElementById("continuer")?.focus({ preventScroll: true }); fb.scrollIntoView({ block: "nearest", behavior: "smooth" }); }, 80);
@@ -398,17 +399,6 @@ function afficherFin(ctx) {
 
 function texteQuestion(item) { return item.q || item.texte || item.recto || ""; }
 function hashCode(s) { let x = 0; for (const c of String(s)) x = (x * 31 + c.charCodeAt(0)) >>> 0; return x; }
-
-function lire(texte, matiere) {
-  try {
-    if (!("speechSynthesis" in window)) return;
-    speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(String(texte).replace(/\*\*|==|\*/g, "").replace(/___/g, " … "));
-    u.lang = matiere === "anglais" ? "en-GB" : MATIERES[matiere]?.langue || "fr-FR";
-    u.rate = 0.95;
-    speechSynthesis.speak(u);
-  } catch {}
-}
 
 // « Encore une séance » mène souvent à l'adresse de la page en cours : un simple lien ne ferait rien.
 function encore(app, href) {

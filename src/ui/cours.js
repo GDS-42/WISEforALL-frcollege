@@ -8,6 +8,7 @@
 // Aucune dépendance. Les cartes sont déléguées à ./carte.js (chargé à la demande, avec repli).
 
 import { h, svg, md, lettre } from "./dom.js";
+import { lire, arreter, disponible as lectureDisponible, retirerBalises } from "../lecture.js";
 
 let compteur = 0;
 const uid = (p) => `cours-${p}-${(++compteur).toString(36)}`;
@@ -29,12 +30,14 @@ function paragraphes(t, cls = "") {
 function ligne(t, tag = "span", cls = "") {
   return h(tag, { class: cls || null, html: md(t).replace(/<\/p><p>/g, "<br><br>") });
 }
-/** Texte brut (synthèse vocale, aria-label). */
-function brut(t) {
+/** Texte sans mise en forme, balises de lecture [[…]] conservées (synthèse vocale). */
+function sansMiseEnForme(t) {
   return String(t ?? "")
     .replace(/==(.+?)==/g, "$1").replace(/\*\*(.+?)\*\*/g, "$1").replace(/(^|[^*])\*([^*\n]+?)\*/g, "$1$2")
     .replace(/\s*\n+\s*/g, " ").trim();
 }
+/** Texte brut (aria-label, plan). */
+function brut(t) { return retirerBalises(sansMiseEnForme(t)); }
 
 const nf = (n, max = 2) => Number(n).toLocaleString("fr-FR", { maximumFractionDigits: max }).replace(/-/g, "−");
 const avecUnite = (v, unite) => (unite ? `${nf(v)}${NBSP}${unite}` : nf(v));
@@ -137,14 +140,14 @@ function blocTexte(b) { return paragraphes(b.md, "cours-bloc cours-texte"); }
 function blocDefinition(b) {
   return h("div", { class: "cours-bloc cours-definition" },
     h("p", { class: "cours-etiquette" }, "Définition"),
-    h("h4", { class: "cours-definition-terme" }, h("dfn", {}, b.terme)),
+    h("h4", { class: "cours-definition-terme" }, h("dfn", {}, retirerBalises(b.terme))),
     paragraphes(b.md));
 }
 
 function blocPropriete(b) {
   return h("div", { class: "cours-bloc cours-propriete", role: "note", "aria-label": "À retenir" },
     h("p", { class: "cours-propriete-onglet", "aria-hidden": "true" }, "À retenir"),
-    b.titre ? h("h4", { class: "cours-propriete-titre" }, b.titre) : null,
+    b.titre ? h("h4", { class: "cours-propriete-titre" }, retirerBalises(b.titre)) : null,
     paragraphes(b.md));
 }
 
@@ -170,14 +173,14 @@ function blocSavaisTu(b) {
 function blocCitation(b) {
   return h("figure", { class: "cours-bloc cours-citation" },
     h("blockquote", {}, h("p", {}, "« ", ligne(b.texte), " »")),
-    h("figcaption", {}, "— ", h("span", { class: "cours-citation-auteur" }, b.auteur),
+    h("figcaption", {}, "— ", h("span", { class: "cours-citation-auteur" }, retirerBalises(b.auteur)),
       b.source ? [", ", h("cite", {}, b.source)] : null));
 }
 
 function blocListe(b) {
   const tag = b.ordonnee ? "ol" : "ul";
   return h("div", { class: "cours-bloc cours-liste" },
-    b.titre ? h("h4", { class: "cours-bloc-titre" }, b.titre) : null,
+    b.titre ? h("h4", { class: "cours-bloc-titre" }, retirerBalises(b.titre)) : null,
     h(tag, { class: `cours-liste-${tag}` }, (b.items || []).map((it) => ligne(it, "li"))));
 }
 
@@ -285,8 +288,8 @@ function blocVerifie(b, ctx = {}) {
   const retour = h("div", { class: "cours-verifie-retour", "aria-live": "polite" });
   const tampon = h("span", { class: "cours-tampon", "aria-hidden": "true", hidden: true });
   const reessayer = h("button", { type: "button", class: "cours-bouton cours-bouton-discret", hidden: true }, "↺ Réessayer");
-  // Ordre d'affichage mélangé (stable pour une même question) : la bonne réponse n'est pas toujours au même endroit.
-  const ordre = ordreMelange(choix.length, `${b.q}|${choix.join("|")}`);
+  // Ordre d'affichage mélangé (stable pour une même question, sans tenir compte des balises de lecture) : la bonne réponse n'est pas toujours au même endroit.
+  const ordre = ordreMelange(choix.length, `${retirerBalises(b.q)}|${choix.map(retirerBalises).join("|")}`);
   const place = (i) => ordre.indexOf(i); // position affichée du choix d'indice i
   const parIndice = choix.map((c, i) => h("button", { type: "button", class: "cours-choix", onclick: () => choisir(i) },
     h("span", { class: "cours-choix-lettre", "aria-hidden": "true" }, lettre(place(i))),
@@ -725,7 +728,7 @@ export function rendreBloc(bloc, options = {}) {
 
 /** Texte lu à voix haute pour un bloc. */
 function texteBloc(b) {
-  const j = (...p) => p.filter(Boolean).map((x) => brut(x)).join(". ");
+  const j = (...p) => p.filter(Boolean).map((x) => sansMiseEnForme(x)).join(". ");
   switch (b?.t) {
     case "texte": return j(b.md);
     case "attention": return j("Attention", b.md);
@@ -750,7 +753,7 @@ function texteBloc(b) {
 
 // ————————————————————————————— Lecture à voix haute —————————————————————————————
 
-const LANGUES = { anglais: "en-GB", espagnol: "es-ES", allemand: "de-DE", arabe: "ar", chinois: "zh-CN" };
+// Le moteur (../lecture.js) lit en français et prononce les passages [[…]] dans la langue de la matière.
 function matiereDe(chapitre) {
   return chapitre?.matiere || String(chapitre?.id || "").match(/^\d+e-(.+?)-\d{2}(?:-|$)/)?.[1] || "";
 }
@@ -762,24 +765,11 @@ function etatBouton(b, actif) {
 }
 function arreterLecture() {
   const l = lecture; lecture = null;
-  try { window.speechSynthesis?.cancel(); } catch { /* rien */ }
+  arreter();
   if (l) etatBouton(l.bouton, false);
 }
-function voixPour(langue) {
-  const vs = window.speechSynthesis.getVoices() || [], l = langue.toLowerCase();
-  return vs.find((v) => v.lang?.toLowerCase().replace("_", "-") === l) || vs.find((v) => v.lang?.toLowerCase().startsWith(l.slice(0, 2))) || null;
-}
-function morceaux(t) {
-  const out = []; let cur = "";
-  for (const p of t.match(/[^.!?…]+[.!?…]*\s*/g) || [t]) {
-    if (cur && (cur + p).length > 220) { out.push(cur); cur = ""; }
-    cur += p;
-  }
-  if (cur.trim()) out.push(cur);
-  return out;
-}
-function boutonEcouter(texte, langue, intitule) {
-  if (typeof window === "undefined" || !("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") return null;
+function boutonEcouter(texte, matiere, intitule) {
+  if (!lectureDisponible()) return null;
   const b = h("button", { type: "button", class: "cours-ecouter" },
     h("span", { class: "cours-ecouter-ico", "aria-hidden": "true" }, "🔊"),
     h("span", { class: "cours-ecouter-mot" }, "Écouter"),
@@ -789,14 +779,7 @@ function boutonEcouter(texte, langue, intitule) {
     arreterLecture();
     const jeton = { bouton: b }; lecture = jeton;
     etatBouton(b, true);
-    const voix = voixPour(langue), parts = morceaux(texte());
-    parts.forEach((m, i) => {
-      const u = new SpeechSynthesisUtterance(m);
-      u.lang = langue; if (voix) u.voice = voix; u.rate = 0.95;
-      if (i === parts.length - 1) u.onend = () => { if (lecture === jeton) { lecture = null; etatBouton(b, false); } };
-      u.onerror = () => { if (lecture === jeton) { lecture = null; etatBouton(b, false); } };
-      window.speechSynthesis.speak(u);
-    });
+    lire(texte(), { matiere, onFin: () => { if (lecture === jeton) { lecture = null; etatBouton(b, false); } } });
   });
   return b;
 }
@@ -810,10 +793,11 @@ function boutonEcouter(texte, langue, intitule) {
  * @param onVerifie (juste, { bloc, essai }) à chaque réponse à un bloc `verifie` (essai = 1 pour la première)
  * @param onSection (index) une fois par section, quand l'élève l'a lue jusqu'au bout
  * @param onFin     () au clic sur « Je m'entraîne »
+ * @param matiere   langue des passages [[…]] lus à voix haute (par défaut : la matière du chapitre)
  */
-export function rendreCours(cours, { chapitre, onVerifie, onSection, onFin, langue } = {}) {
+export function rendreCours(cours, { chapitre, onVerifie, onSection, onFin, matiere } = {}) {
   const id = uid("lecon");
-  const lang = langue || LANGUES[matiereDe(chapitre)] || "fr-FR";
+  const mat = matiere || matiereDe(chapitre); // langue des passages [[…]] lus à voix haute
   const sections = Array.isArray(cours?.sections) ? cours.sections : [];
   const ctx = { onVerifie };
   const racine = h("article", { class: "cours-eclore", "aria-labelledby": chapitre?.titre ? `${id}-titre` : null, "aria-label": chapitre?.titre ? null : "Cours" });
@@ -858,7 +842,7 @@ export function rendreCours(cours, { chapitre, onVerifie, onSection, onFin, lang
   sections.forEach((s, i) => {
     const sid = `${id}-s${i + 1}`;
     const t = h("h3", { class: "cours-section-titre", id: `${sid}-t`, tabindex: "-1" }, h("span", { class: "cours-sr" }, `Partie ${i + 1} : `), ligne(s.titre || ""));
-    const ecoute = boutonEcouter(() => [s.titre, ...(s.blocs || []).map(texteBloc)].filter(Boolean).join(". ").replace(/([.!?:;])\s*\.\s/g, "$1 "), lang, `partie ${i + 1}`);
+    const ecoute = boutonEcouter(() => [s.titre, ...(s.blocs || []).map(texteBloc)].filter(Boolean).join(". ").replace(/([.!?:;])(\]\])?\s*\.\s/g, "$1$2 "), mat, `partie ${i + 1}`);
     const fin = h("div", { class: "cours-section-fin", "aria-hidden": "true" }, icone.fleuron());
     const el = h("section", { class: "cours-section", id: sid, "aria-labelledby": `${sid}-t`, "data-index": i },
       h("header", { class: "cours-section-entete" }, h("span", { class: "cours-section-num", "aria-hidden": "true" }, i + 1), t, ecoute),

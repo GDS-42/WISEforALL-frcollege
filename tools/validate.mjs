@@ -5,6 +5,7 @@ import { readdirSync, statSync } from "node:fs";
 import { resolve, join, relative } from "node:path";
 import { pathToFileURL } from "node:url";
 import { MATIERES, NIVEAUX, TYPES_ITEMS } from "../content/matieres.js";
+import { verifierBalisesModule } from "./balises.mjs";
 
 const root = resolve(new URL("..", import.meta.url).pathname);
 const args = process.argv.slice(2);
@@ -53,6 +54,7 @@ for (const f of files) {
   const expectedPath = join(root, "content", niveau || "?", `${matiere}.js`);
   if (resolve(f) !== expectedPath) err(f, `le fichier devrait être content/${niveau}/${matiere}.js`);
   if (!isStr(mod.intro, 10)) warn(f, "intro manquante ou trop courte");
+  for (const m of verifierBalisesModule(mod, false)) err(f, m);
   if (!Array.isArray(chapitres) || chapitres.length === 0) { err(f, "chapitres doit être un tableau non vide"); continue; }
 
   let nItems = 0;

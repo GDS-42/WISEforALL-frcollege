@@ -31,6 +31,8 @@ Matières (ids) : `francais`, `maths`, `histoire`, `geographie`, `emc`, `svt`, `
 
 `**gras**`, `*italique*`, `\n` saut de ligne. Exposants en Unicode : x², cm³, 10⁵. Fractions : « 3/4 ».
 Symboles : × ÷ − ≤ ≥ ≠ ≈ √ π °.
+Langues vivantes : `[[…]]` autour de ce qui se prononce dans la langue étudiée (lecture à voix haute), seulement
+dans q, texte, recto et explication ; voir docs/LANGUES.md.
 
 ## Schéma
 
