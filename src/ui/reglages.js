@@ -1,7 +1,9 @@
 // ÉCLORE — Réglages : accessibilité d'abord (dys, taille, animations, lecture à voix haute), puis confort.
-import { h, toast, poser, remplacer } from "./dom.js";
+import { h, toast, poser, remplacer, dateCourte } from "./dom.js";
+import { icone } from "./icones.js";
 import { NIVEAUX } from "../content.js";
-import { exporterJSON } from "../store.js";
+import { secoursDisponible, restaurerSecours } from "../store.js";
+import { boutonsExport, zoneImport, ilYa } from "./sauvegarde.js";
 
 export async function ecranReglages(main, params, app) {
   const e = app.etat;
@@ -31,16 +33,43 @@ export async function ecranReglages(main, params, app) {
         h("div", { class: "segments" }, NIVEAUX.map(n => h("button", { "aria-pressed": e.profil.niveau === n ? "true" : "false", onclick: () => { app.store.maj(x => { x.profil.niveau = n; }); majProfil(e); app.rendre(); } }, n)))),
       h("div", { class: "toggle" }, h("div", {}, h("div", {}, "Deuxième langue")),
         h("div", { class: "segments" }, [["espagnol", "Espagnol"], ["aucune", "Aucune"]].map(([v, l]) => h("button", { "aria-pressed": (e.profil.lv2 || "espagnol") === v ? "true" : "false", onclick: () => { app.store.maj(x => { x.profil.lv2 = v; }); majProfil(e); app.rendre(); } }, l))))),
-    h("div", { class: "feuillet" },
-      h("h3", {}, "Mes données"),
-      h("p", { class: "muet petit" }, "Tout est enregistré dans ce navigateur, sur cet appareil. Pour changer d'appareil ou garder une copie, exporte ta sauvegarde."),
-      h("div", { class: "rang" },
-        h("button", { class: "btn", onclick: () => { const b = new Blob([exporterJSON(app.etat)], { type: "application/json" }); const u = URL.createObjectURL(b); const a = h("a", { href: u, download: `eclore-${e.profil.prenom}.json` }); document.body.append(a); a.click(); setTimeout(() => { a.remove(); URL.revokeObjectURL(u); }, 500); toast("Sauvegarde téléchargée.", { icone: "⬇️" }); } }, "Exporter ma sauvegarde"),
-        h("a", { class: "btn", href: "#/adulte" }, "Espace adulte"),
-        h("button", { class: "btn discret", onclick: () => app.deconnecter() }, "Changer de profil"))),
+    carteDonnees(app),
     h("div", { class: "feuillet" },
       h("h3", {}, "À propos"),
       h("p", { class: "muet petit", style: { marginBottom: 0 } }, "ÉCLORE est un jeu libre et gratuit pour apprendre le programme du collège. Il s'appuie sur la recherche en sciences cognitives : pratique de récupération, répétition espacée (FSRS), entrelacement, feedback élaboré, métacognition. Il ne collecte aucune donnée.")));
+}
+
+/** « Mes données » : sauvegarder dans un fichier, reprendre un fichier, annuler le dernier import. */
+function carteDonnees(app) {
+  const e = app.etat, id = e.profil.id;
+  const persistance = h("p", { class: "tres-muet petit", style: { margin: ".6rem 0 0" } });
+  navigator.storage?.persisted?.().then(ok => { persistance.textContent = ok ? "Ce navigateur protège tes données de l'effacement automatique. Un fichier de sauvegarde reste la meilleure assurance." : "Ce navigateur peut effacer les données des sites peu visités : sauvegarde régulièrement."; }).catch(() => {});
+  const zone = h("div");
+  const secours = secoursDisponible(id);
+  return h("div", { class: "feuillet donnees" },
+    h("h3", {}, "Mes données"),
+    h("p", { class: "muet petit" }, "Ton carnet vit dans ce navigateur, sur cet appareil. Un fichier de sauvegarde te protège d'un effacement accidentel et te permet de continuer ailleurs : sur un autre ordinateur, une tablette, un téléphone."),
+    h("p", { class: "derniere-sauvegarde" }, "Dernière sauvegarde : ", h("b", {}, ilYa(e.sauvegarde?.derniere))),
+    h("div", { class: "rang" },
+      boutonsExport(app),
+      h("button", { class: "btn", type: "button", onclick: (ev) => { ev.currentTarget.disabled = true; remplacer(zone, zoneImport(app, { compact: true, surInstalles: (etats) => {
+        const actif = etats.find(x => x.profil.id === app.etat.profil.id) || etats[0];
+        app.utiliserEtat(actif);
+        toast(`Carnet de ${actif.profil.prenom} repris depuis le fichier.`, { icone: "🌿" });
+        app.rendre();
+      } })); } }, icone("haut"), "Reprendre un fichier")),
+    zone,
+    secours ? h("div", { class: "rang", style: { marginTop: ".8rem" } },
+      h("button", { class: "btn discret", type: "button", onclick: () => {
+        if (!confirm(`Remettre le carnet tel qu'il était le ${dateCourte(secours)}, avant le dernier import ?`)) return;
+        app.store.sauverMaintenant();
+        const r = restaurerSecours(id);
+        if (r) { app.utiliserEtat(r); toast("Carnet restauré tel qu'il était avant l'import.", { icone: "↩️" }); app.rendre(); }
+      } }, icone("recommencer"), `Annuler le dernier import (copie du ${dateCourte(secours)})`)) : null,
+    persistance,
+    h("div", { class: "rang", style: { marginTop: ".8rem" } },
+      h("a", { class: "btn discret", href: "#/adulte" }, "Espace adulte"),
+      h("button", { class: "btn discret", onclick: () => app.deconnecter() }, "Changer de profil")));
 }
 
 function majProfil(e) {

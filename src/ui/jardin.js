@@ -9,6 +9,8 @@ import { salut, citationDuJour } from "../mentor.js";
 import { cleJour } from "../store.js";
 import { quetesDuJour, reclamerQuete, niveauDepuisXp, verifierNiveau, CATALOGUE } from "../gamification.js";
 import { sons } from "../audio.js";
+import { sauvegardeConseillee } from "../sauvegarde.js";
+import { boutonsExport, ilYa } from "./sauvegarde.js";
 
 export function momentDuJour(d = new Date()) {
   const hh = d.getHours();
@@ -112,7 +114,7 @@ export async function ecranJardin(main, params, app) {
   dessinerQuetes();
 
   const prochaineDeco = CATALOGUE.find(a => !e.gamif.jardin[a.id]);
-  poser(main, scene,
+  poser(main, scene, rappelSauvegarde(app),
     h("div", { class: "jardin-grille" },
       rituel,
       h("div", { class: "pile" },
@@ -127,4 +129,21 @@ export async function ecranJardin(main, params, app) {
             h("span", { class: "muet petit" }, prochaineDeco ? `Prochaine décoration : ${prochaineDeco.nom} (${prochaineDeco.prix} ✦)` : "Ton jardin est entièrement décoré."),
             h("a", { class: "btn petit", href: "#/boutique" }, icone("boutique", { taille: 16 }), "Boutique"))),
         h("section", { class: "feuillet" }, h("blockquote", { class: "citation-jour" }, cit, h("footer", {}, "— ", auteur))))));
+}
+
+/** Rappel discret : de la progression non sauvegardée depuis plus d'une semaine. */
+function rappelSauvegarde(app) {
+  const e = app.etat;
+  if (!sauvegardeConseillee(e) || e.sauvegarde?.reporte === cleJour()) return null;
+  const carte = h("section", { class: "feuillet rappel-sauvegarde apparait", "aria-label": "Sauvegarde" });
+  const fermer = () => carte.remove();
+  const mini = lume({ humeur: "encourage" }); mini.classList.add("lume");
+  const [telech, envoyer] = boutonsExport(app, { libelle: "Sauvegarder maintenant" });
+  telech.addEventListener("click", fermer); envoyer?.addEventListener("click", fermer);
+  return poser(carte, mini,
+    h("div", { style: { flex: 1, minWidth: "220px" } },
+      h("strong", {}, "Mets ton carnet à l'abri"),
+      h("p", { class: "muet petit", style: { margin: ".15rem 0 0" } }, `Dernière sauvegarde : ${ilYa(e.sauvegarde?.derniere)}. Un fichier te protège si les données du navigateur sont effacées, et te permet de continuer sur un autre appareil.`)),
+    h("div", { class: "rang" }, telech, envoyer,
+      h("button", { class: "btn discret", type: "button", onclick: () => { app.store.maj(x => { x.sauvegarde = { ...x.sauvegarde, reporte: cleJour() }; }); fermer(); } }, "Plus tard")));
 }

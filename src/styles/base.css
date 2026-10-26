@@ -241,3 +241,6 @@ select option { color: #000; }
   .segments { display: flex; flex-wrap: wrap; max-width: 100%; }
   .segments button { flex: 1 1 auto; padding: .45rem .6rem; border-bottom: 1.5px solid var(--encre); margin-bottom: -1.5px; }
 }
+
+.visuellement-cache { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap; }
+#contenu:focus { outline: none; } /* reçoit le focus après chaque navigation (lecteurs d'écran), sans cadre visible */

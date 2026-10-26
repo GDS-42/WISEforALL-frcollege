@@ -4,6 +4,7 @@ import { icone } from "./icones.js";
 import { listerProfils, creerProfil, supprimerProfil } from "../store.js";
 import { NIVEAUX } from "../content.js";
 import { lume } from "./illustrations.js";
+import { zoneImport, boutonsExport } from "./sauvegarde.js";
 
 const PIGMENTS = ["#c4553d", "#3d5a99", "#5a8a3a", "#b04a82", "#cc8a24", "#2c7b80"];
 
@@ -30,12 +31,29 @@ export async function ecranAccueil(main, params, app) {
         if (confirm(`Supprimer le profil de ${p.prenom} et tout son jardin ? C'est définitif.`)) { supprimerProfil(p.id); app.rendre(); } } }, icone("fermer"));
       poser(liste, h("div", { class: "rang", style: { flexWrap: "nowrap" } }, ouvrir, suppr));
     });
-    poser(livre, liste, h("button", { class: "btn apparait-4", onclick: () => formulaire(livre, app, lumeSvg) }, icone("plus"), "Nouveau carnet"));
+    poser(livre, liste, h("div", { class: "rang apparait-4", style: { justifyContent: "center" } },
+      h("button", { class: "btn", onclick: () => formulaire(livre, app, lumeSvg) }, icone("plus"), "Nouveau carnet"),
+      h("button", { class: "btn discret", onclick: () => reprendre(livre, app, lumeSvg) }, icone("haut"), "Reprendre une sauvegarde")),
+      h("div", { class: "rang apparait-4", style: { justifyContent: "center", marginTop: ".3rem" } }, boutonsExport(app, { tous: true })));
   } else {
     poser(livre, lumeSvg, ...entete().slice(1),
       h("p", { class: "poeme apparait-3", html: "Quelque part pousse un jardin qui ne fleurit qu'à la lumière de ce que tu apprends. Chaque notion comprise y devient une <em>graine</em> ; chaque fois que tu t'en souviens, elle <em>grandit</em>. On ne t'y demandera jamais d'être parfait. Seulement de revenir." }),
-      h("button", { class: "btn encre large apparait-4", onclick: () => formulaire(livre, app, lumeSvg) }, "Ouvrir mon carnet", icone("suivant")));
+      h("button", { class: "btn encre large apparait-4", onclick: () => formulaire(livre, app, lumeSvg) }, "Ouvrir mon carnet", icone("suivant")),
+      h("button", { class: "btn discret apparait-4", onclick: () => reprendre(livre, app, lumeSvg) }, icone("haut"), "J'ai déjà un carnet : reprendre ma sauvegarde"));
   }
+}
+
+/** Reprendre un carnet depuis un fichier (nouvel appareil, données du navigateur effacées…). */
+function reprendre(livre, app, lumeSvg) {
+  remplacer(livre, lumeSvg,
+    h("h2", { style: { marginTop: ".4rem" } }, "Reprendre mon carnet"),
+    h("p", { class: "muet" }, "Choisis le fichier de sauvegarde téléchargé depuis ÉCLORE (Réglages, « Mes données »). Ta progression reprendra exactement là où tu l'avais laissée."),
+    zoneImport(app, { surInstalles: (etats) => {
+      app.utiliserEtat(etats[0]);
+      toast(etats.length > 1 ? `${etats.length} carnets retrouvés. Bon retour, ${etats[0].profil.prenom} !` : `Carnet retrouvé. Bon retour, ${etats[0].profil.prenom} !`, { icone: "🌿" });
+      app.naviguer("#/jardin");
+    } }),
+    h("button", { class: "btn discret", type: "button", onclick: () => app.rendre() }, icone("retour"), "Retour"));
 }
 
 function formulaire(livre, app, lumeSvg) {

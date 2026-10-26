@@ -38,6 +38,23 @@ Le jeu doit être servi en HTTP (les modules ES ne se chargent pas depuis `file:
   herbier de planches à colorier puis à dorer par une épreuve, boutique de décorations pour le
   jardin. Rien n'est jamais retiré, aucune comparaison entre élèves.
 
+## Sauvegarder et emporter sa progression
+
+Tout vit dans le navigateur. Pour se protéger d'un effacement des données du site, ou pour
+continuer sur un autre appareil :
+
+- **Réglages → Mes données → Télécharger ma sauvegarde** crée un fichier
+  `eclore-<prénom>-AAAA-MM-JJ.json` (sur mobile, « Envoyer… » l'expédie vers Drive, le mail…).
+  L'accueil propose aussi de sauvegarder **tous les carnets** de l'appareil en un fichier.
+- Sur le nouvel appareil (ou après un effacement), **Accueil → J'ai déjà un carnet** puis choisir
+  ou déposer le fichier : la progression reprend à l'identique.
+- Si le carnet existe déjà, une **comparaison** (dernière activité, notions, séances) précède le
+  remplacement ; l'état local est gardé en copie de secours et l'import peut être **annulé**.
+- Le jardin rappelle discrètement de sauvegarder après une semaine de progrès non sauvegardés, et
+  l'application demande au navigateur un stockage persistant.
+
+Le format est documenté dans `src/sauvegarde.js` (les anciens fichiers restent lisibles).
+
 ## Contenu
 
 | Niveau | Matières |

@@ -3,7 +3,7 @@ import { h, pluriel, duree, dateCourte, poser, remplacer } from "./dom.js";
 import { chargerNiveau, MATIERES, SOCLE, NIVEAUX } from "../content.js";
 import { maitrise, couverture, nbDus, calibration, statsGlobales } from "../engine.js";
 import { paliersElo } from "../adapt.js";
-import { exporterJSON, importerJSON } from "../store.js";
+import { telecharger, boutonsExport } from "./sauvegarde.js";
 
 const PALIERS = ["non évalué", "fragile", "en cours", "satisfaisant", "très bonne maîtrise"];
 
@@ -16,11 +16,9 @@ export async function ecranAdulte(main, params, app) {
       h("div", {}, h("span", { class: "etiquette" }, "Parents et professeurs"), h("h1", { style: { margin: ".1rem 0 .3rem" } }, "Espace adulte"), h("p", { class: "muet", style: { margin: 0 } }, `Bilan de ${e.profil.prenom} (${e.profil.niveau}). Les données restent sur cet appareil.`)),
       h("div", { class: "rang", style: { marginLeft: "auto" } },
         h("button", { class: "btn", onclick: () => window.print() }, "Imprimer"),
-        h("button", { class: "btn", onclick: () => telecharger(`eclore-${e.profil.prenom}-${new Date().toISOString().slice(0, 10)}.json`, exporterJSON(e), "application/json") }, "Exporter (JSON)"),
+        ...boutonsExport(app, { libelle: "Sauvegarde (JSON)" }),
         h("button", { class: "btn", onclick: async () => telecharger(`eclore-${e.profil.prenom}-maitrise.csv`, await csv(e), "text/csv") }, "Exporter (CSV)"),
-        h("label", { class: "btn", style: { cursor: "pointer" } }, "Importer", h("input", { type: "file", accept: "application/json,.json", style: { display: "none" }, onchange: async (ev) => {
-          const f = ev.target.files?.[0]; if (!f) return;
-          try { const etat = importerJSON(await f.text()); app.utiliserEtat(etat); app.naviguer("#/jardin"); } catch (err) { alert("Import impossible : " + err.message); } } })))),
+        h("a", { class: "btn", href: "#/reglages" }, "Reprendre un fichier"))),
     conteneur);
 
   async function rendre() {
@@ -82,10 +80,6 @@ function cellule(v, vide = false, titre = null) {
 }
 function stat(valeur, libelle, sous = "") { return h("div", { class: "stat" }, h("div", { class: "valeur" }, String(valeur)), h("div", { class: "libelle" }, libelle), sous ? h("div", { class: "tres-muet" }, sous) : null); }
 
-function telecharger(nom, contenu, type) {
-  const b = new Blob([contenu], { type }); const u = URL.createObjectURL(b);
-  const a = h("a", { href: u, download: nom }); document.body.append(a); a.click(); setTimeout(() => { a.remove(); URL.revokeObjectURL(u); }, 500);
-}
 
 async function csv(e) {
   const modules = await chargerNiveau(e.profil.niveau);

@@ -195,3 +195,30 @@ table.tableau { width: 100%; border-collapse: collapse; font-size: .9rem; }
 .m2 { background: color-mix(in oklab, var(--attention) 32%, var(--papier)); }
 .m3 { background: color-mix(in oklab, var(--ok) 30%, var(--papier)); }
 .m4 { background: color-mix(in oklab, var(--ok) 60%, var(--papier)); }
+
+/* ---------- Sauvegarde : dépôt de fichier, comparaison, rappel ---------- */
+.import-zone { margin: .8rem 0; border-radius: var(--r-l); transition: background calc(160ms * var(--vitesse)); }
+.import-zone .depot { display: flex; flex-direction: column; align-items: center; gap: .35rem; padding: 1.4rem 1rem; border: 2px dashed var(--trait-fort); border-radius: var(--r-l); background: var(--papier-2); cursor: pointer; text-align: center; color: var(--encre-2); }
+.import-zone .depot.compact { flex-direction: row; justify-content: center; padding: .8rem 1rem; }
+.import-zone .depot:hover, .import-zone .depot:focus-visible, .import-zone.survol .depot { border-color: var(--encre); background: var(--pigment-lavis, var(--papier-3)); color: var(--encre); }
+.import-zone .depot .icone { color: var(--or); }
+.import-zone .depot-titre { font-weight: 600; color: var(--encre); }
+.import-zone .depot-aide { font-size: .85rem; color: var(--encre-3); }
+.import-message { margin: .5rem 0 0; font-size: .92rem; min-height: 0; }
+.import-message.erreur { color: var(--ko); font-weight: 500; }
+.import-carte { padding: 1rem 1.1rem; border: 1.5px solid var(--encre); border-radius: var(--r-l); background: var(--papier-2); box-shadow: var(--ombre-tampon-s); text-align: left; }
+.import-carte h3 { margin: .1rem 0 .4rem; }
+.compare { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: .8rem; margin: .9rem 0 1rem; }
+.compare-col { padding: .7rem .85rem; border: 1.5px solid var(--trait-fort); border-radius: var(--r); background: var(--papier); }
+.compare-col.recent { border-color: var(--encre); box-shadow: var(--ombre-tampon-s); }
+.compare-titre { display: flex; justify-content: space-between; align-items: center; gap: .4rem; font-family: var(--f-titre); margin-bottom: .45rem; }
+.compare dl { display: grid; grid-template-columns: 1fr auto; gap: .25rem .8rem; margin: 0; font-size: .9rem; }
+.compare dt { color: var(--encre-2); }
+.compare dd { margin: 0; font-weight: 600; text-align: right; font-variant-numeric: tabular-nums; }
+.import-liste { display: flex; flex-direction: column; gap: .5rem; margin: .8rem 0 1rem; }
+.import-ligne { display: flex; gap: .7rem; align-items: flex-start; padding: .6rem .7rem; border: 1.5px solid var(--trait-fort); border-radius: var(--r); background: var(--papier); cursor: pointer; }
+.import-ligne input { margin-top: .25rem; width: 18px; height: 18px; accent-color: var(--encre); }
+.derniere-sauvegarde { margin: .2rem 0 .7rem; }
+.rappel-sauvegarde { display: flex; align-items: center; gap: .9rem; flex-wrap: wrap; margin: 1rem 0 0; border-style: dashed; }
+.rappel-sauvegarde .lume { width: 54px; height: 54px; flex-shrink: 0; }
+.couverture .import-zone { width: 100%; }

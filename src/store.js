@@ -20,6 +20,7 @@ export function etatVierge(profil) {
     lumens: 0,      // monnaie douce : « lumens » gagnés par l'effort
     succes: {},     // id → ts
     cours: {},      // chapitre → { sections: [index lus], lu: ts, verifies: n }
+    sauvegarde: { derniere: null }, // date du dernier fichier de sauvegarde exporté
     intro: false,
   };
 }
@@ -47,7 +48,7 @@ export function creerProfil({ prenom, niveau, lv2 }) {
 
 export function supprimerProfil(id) {
   ecrire(CLE_PROFILS, listerProfils().filter(p => p.id !== id));
-  try { localStorage.removeItem(prefixe(id)); } catch {}
+  try { localStorage.removeItem(prefixe(id)); localStorage.removeItem(cleSecours(id)); } catch {}
   if (profilActifId() === id) ecrire(CLE_ACTIF, null);
 }
 
@@ -69,6 +70,7 @@ function migrer(e) {
   // v2 : nouvelle charte « Herbier » ; l'ancien thème nuit par défaut devient « auto » (suit l'appareil).
   if ((e.version || 1) < 2 && e.prefs.theme === "nuit") e.prefs.theme = "auto";
   if (!e.cours) e.cours = {};
+  if (!e.sauvegarde || typeof e.sauvegarde !== "object") e.sauvegarde = { derniere: null };
   e.version = VERSION_ETAT;
   return e;
 }
@@ -91,20 +93,41 @@ export function creerStore(etatInitial) {
   };
 }
 
-export function exporterJSON(etat) {
-  return JSON.stringify({ application: "ECLORE", version: VERSION_ETAT, exporte: new Date().toISOString(), etat }, null, 2);
+/** Tous les carnets de l'appareil (pour une sauvegarde familiale). */
+export function etatsDeTousLesProfils() {
+  return listerProfils().map(p => lire(prefixe(p.id), null)).filter(Boolean).map(migrer);
 }
 
-export function importerJSON(texte) {
-  const data = JSON.parse(texte);
-  const e = data?.etat && data.application === "ECLORE" ? data.etat : data;
-  if (!e?.profil?.id || !e.items) throw new Error("Fichier de sauvegarde non reconnu.");
+/** L'id d'un profil existe-t-il déjà sur cet appareil ? */
+export function profilExiste(id) { return listerProfils().some(p => p.id === id); }
+
+/**
+ * Installe un carnet lu dans un fichier. S'il remplace un carnet existant, l'état local est
+ * d'abord copié en secours (une seule copie par profil), restaurable avec restaurerSecours().
+ */
+export function installerProfil(etat, { secours = true } = {}) {
+  const id = etat.profil.id;
+  const local = lire(prefixe(id), null);
+  if (secours && local) ecrire(cleSecours(id), { le: Date.now(), etat: local });
+  const fiche = { id, prenom: etat.profil.prenom, niveau: etat.profil.niveau, lv2: etat.profil.lv2 };
   const profils = listerProfils();
-  if (!profils.find(p => p.id === e.profil.id)) { profils.push({ id: e.profil.id, prenom: e.profil.prenom, niveau: e.profil.niveau, lv2: e.profil.lv2 }); ecrire(CLE_PROFILS, profils); }
-  else ecrire(CLE_PROFILS, profils.map(p => p.id === e.profil.id ? { id: e.profil.id, prenom: e.profil.prenom, niveau: e.profil.niveau, lv2: e.profil.lv2 } : p));
-  ecrire(prefixe(e.profil.id), e);
-  ecrire(CLE_ACTIF, e.profil.id);
-  return migrer(e);
+  ecrire(CLE_PROFILS, profils.some(p => p.id === id) ? profils.map(p => p.id === id ? fiche : p) : [...profils, fiche]);
+  const e = migrer(etat);
+  ecrire(prefixe(id), e);
+  ecrire(CLE_ACTIF, id);
+  return e;
+}
+
+const cleSecours = (id) => `eclore:secours:${id}`;
+/** Date de la copie de secours d'un profil (avant le dernier import), ou null. */
+export function secoursDisponible(id) { return lire(cleSecours(id), null)?.le || null; }
+/** Remet le carnet tel qu'il était avant le dernier import. */
+export function restaurerSecours(id) {
+  const s = lire(cleSecours(id), null);
+  if (!s?.etat) return null;
+  const e = installerProfil(s.etat, { secours: false });
+  try { localStorage.removeItem(cleSecours(id)); } catch {}
+  return e;
 }
 
 export function cleJour(d = new Date()) {

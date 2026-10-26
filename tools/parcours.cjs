@@ -73,6 +73,45 @@ async function seance(page, route) {
   for (const r of ["#/session/defi", "#/session/diagnostic/5e-svt"]) { await page.goto(BASE + r); await page.waitForSelector(".fiche-question"); }
   await page.goto(BASE + "#/session/arroser"); await page.waitForTimeout(600);
 
+  // Sauvegarde : exporter, effacer les données du navigateur, reprendre depuis l'accueil.
+  page.on("dialog", d => d.accept());
+  const lumens = async () => page.textContent('#entete a[href="#/boutique"] span');
+  await ecran("#/reglages", ".donnees", "20-reglages-donnees");
+  const avant = await lumens();
+  const [dl] = await Promise.all([page.waitForEvent("download"), page.click("text=Télécharger ma sauvegarde")]);
+  const fichier = S + "sauvegarde.json"; await dl.saveAs(fichier);
+  if (!/^eclore-lea-\d{4}-\d{2}-\d{2}\.json$/.test(dl.suggestedFilename())) erreurs.push("[sauvegarde] nom de fichier inattendu : " + dl.suggestedFilename());
+  await page.evaluate(() => localStorage.clear());
+  await page.goto(BASE); await page.reload({ waitUntil: "networkidle" });
+  await page.click("text=J'ai déjà un carnet");
+  await page.waitForSelector(".import-zone"); await page.screenshot({ path: S + "21-reprendre.png", fullPage: true });
+  await page.setInputFiles('.import-zone input[type="file"]', fichier);
+  await page.waitForSelector(".scene-jardin"); await page.waitForTimeout(500);
+  const apres = await lumens(), prenom = await page.textContent('#entete a[href="#/profils"] span');
+  if (apres !== avant || prenom !== "Léa") erreurs.push(`[sauvegarde] reprise incomplète : lumens ${avant} → ${apres}, prénom ${prenom}`);
+  // Réimporter le même carnet : comparaison, remplacement, puis annulation.
+  await page.goto(BASE + "#/reglages"); await page.waitForSelector(".donnees");
+  if (!(await page.textContent(".derniere-sauvegarde")).includes("aujourd'hui")) erreurs.push("[sauvegarde] la date de sauvegarde n'a pas suivi le fichier");
+  await page.click("text=Reprendre un fichier");
+  await page.setInputFiles('.import-zone input[type="file"]', fichier);
+  await page.waitForSelector(".compare"); await page.screenshot({ path: S + "22-comparaison.png", fullPage: true });
+  await page.click("text=Remplacer par le fichier"); await page.waitForTimeout(400);
+  await page.click("text=Annuler le dernier import"); await page.waitForTimeout(400);
+  if (await page.$("text=Annuler le dernier import")) erreurs.push("[sauvegarde] la copie de secours n'a pas été consommée");
+  // Fichier invalide : message clair, pas de plantage.
+  await page.click("text=Reprendre un fichier");
+  await page.setInputFiles('.import-zone input[type="file"]', { name: "x.json", mimeType: "application/json", buffer: Buffer.from("{oups") });
+  if (!(await page.textContent(".import-message")).includes("illisible")) erreurs.push("[sauvegarde] pas de message pour un fichier invalide");
+  // Rappel du jardin quand la dernière sauvegarde est ancienne (modifié hors de l'appli, qui réécrit son état en partant).
+  await page.goto(BASE + "manifest.json");
+  await page.evaluate(() => {
+    const id = JSON.parse(localStorage.getItem("eclore:profil-actif")), cle = `eclore:profil:${id}`, e = JSON.parse(localStorage.getItem(cle));
+    e.sauvegarde = { derniere: Date.now() - 10 * 86400000 }; e.journal.push({ t: Date.now() - 3600000, n: 1, ok: 1 });
+    localStorage.setItem(cle, JSON.stringify(e));
+  });
+  await page.goto(BASE + "#/jardin");
+  await page.waitForSelector(".rappel-sauvegarde"); await page.screenshot({ path: S + "23-rappel.png" });
+
   // Thème nuit et mobile.
   await page.emulateMedia({ colorScheme: "dark" }); // thème « auto » → nuit
   await ecran("#/jardin", ".scene-jardin", "16-jardin-nuit");

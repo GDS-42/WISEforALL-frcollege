@@ -27,9 +27,18 @@ export const app = {
     this.store.abonner(appliquerPrefs);
     this.store.abonner(() => dessinerEntete());
     appliquerPrefs(e);
+    demanderPersistance();
   },
   deconnecter() { this.store?.sauverMaintenant(); this.store = null; try { localStorage.removeItem("eclore:profil-actif"); } catch {} this.naviguer("#/profils"); },
 };
+
+// Demande au navigateur de ne pas effacer nos données de lui-même (stockage « persistant »).
+let persistanceDemandee = false;
+function demanderPersistance() {
+  if (persistanceDemandee) return;
+  persistanceDemandee = true;
+  try { navigator.storage?.persist?.().catch(() => {}); } catch {}
+}
 
 function themeEffectif(p) {
   const t = p?.theme || "auto";
