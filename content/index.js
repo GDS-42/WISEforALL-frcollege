@@ -72,6 +72,11 @@ export const MODULES = [
   },
   {
     "niveau": "5e",
+    "matiere": "arabe",
+    "path": "./5e/arabe.js"
+  },
+  {
+    "niveau": "5e",
     "matiere": "arts-plastiques",
     "path": "./5e/arts-plastiques.js"
   },
@@ -147,6 +152,11 @@ export const MODULES = [
   },
   {
     "niveau": "4e",
+    "matiere": "arabe",
+    "path": "./4e/arabe.js"
+  },
+  {
+    "niveau": "4e",
     "matiere": "arts-plastiques",
     "path": "./4e/arts-plastiques.js"
   },
@@ -212,6 +222,11 @@ export const MODULES = [
   },
   {
     "niveau": "3e",
+    "matiere": "allemand",
+    "path": "./3e/allemand.js"
+  },
+  {
+    "niveau": "3e",
     "matiere": "anglais",
     "path": "./3e/anglais.js"
   },
@@ -224,6 +239,11 @@ export const MODULES = [
     "niveau": "3e",
     "matiere": "arts-plastiques",
     "path": "./3e/arts-plastiques.js"
+  },
+  {
+    "niveau": "3e",
+    "matiere": "chinois",
+    "path": "./3e/chinois.js"
   },
   {
     "niveau": "3e",
