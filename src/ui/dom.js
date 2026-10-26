@@ -40,7 +40,17 @@ export function md(texte) {
   t = t.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
   t = t.replace(/(^|[^*])\*([^*\n]+?)\*/g, "$1<em>$2</em>");
   t = t.replace(/\n\n+/g, "</p><p>").replace(/\n/g, "<br>");
-  return t;
+  return marquerEcritures(t);
+}
+
+// Écritures arabe et chinoise : un <span> avec la langue, le sens de lecture et une police adaptée.
+const RE_ARABE = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]+(?:[ \u00A0]+[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]+)*/g;
+const RE_SINO = /[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]+(?:[\u3000-\u303F\uFF00-\uFFEF\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]+)*/g;
+export function marquerEcritures(html) {
+  if (!/[\u0600-\u06FF\u3400-\u9FFF\uF900-\uFAFF\uFB50-\uFEFF]/.test(html)) return html;
+  return html.split(/(<[^>]+>)/).map(seg => seg.startsWith("<") ? seg : seg
+    .replace(RE_ARABE, m => `<span class="ecr-ar" lang="ar" dir="rtl">${m}</span>`)
+    .replace(RE_SINO, m => `<span class="ecr-zh" lang="zh-Hans">${m}</span>`)).join("");
 }
 
 export function mdEl(texte, tag = "span", cls = "") {

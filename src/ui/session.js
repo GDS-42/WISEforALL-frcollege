@@ -33,10 +33,7 @@ export async function ecranSession(main, [type, param], app) {
     const n = type === "defi" ? 10 : type === "diagnostic" ? 14 : Math.max(8, Math.min(16, e.prefs.objectifItems || 12));
     session = construireSession({ type, etat: e, chapitre, modules, n });
   }
-  if (!session.items.length) {
-    poser(main, h("div", { class: "seance" }, h("div", { class: "feuillet fin-seance" }, h("h2", {}, "Rien à arroser pour l'instant"), h("p", { class: "muet" }, "Aucune graine n'a soif. Profites-en pour découvrir un nouveau chapitre."), h("a", { class: "btn encre", href: "#/atlas" }, icone("atlas"), "Ouvrir l'Atlas"))));
-    return;
-  }
+  if (!session.items.length) { poser(main, seanceVide(type, modules, e)); return; }
   const stadesAvant = {};
   for (const it of session.items) stadesAvant[it.id] = stade(e.items[it.id]);
   const ctx = { app, session, type, chapitre, modules, index: 0, file: session.items.slice(), rattrapes: new Set(), stadesAvant, serie: 0, meilleure: 0, xpAvant: e.gamif.xp, niveauAvant: niveauDepuisXp(e.gamif.xp), lumensAvant: e.lumens, resultats: [] };
@@ -202,7 +199,9 @@ const RENDUS = {
   },
   trous(item, corps, { onPret }) {
     const parts = item.texte.split("___"), inputs = [];
-    const p = h("p", { class: "texte-trous" });
+    // Phrase arabe : le paragraphe se lit de droite à gauche (blancs compris).
+    const premiere = item.texte.match(/[A-Za-zÀ-ÿ\u0600-\u06FF]/)?.[0] || "";
+    const p = h("p", { class: "texte-trous", dir: /[\u0600-\u06FF]/.test(premiere) ? "rtl" : null });
     parts.forEach((t, i) => {
       p.append(h("span", { html: md(t) }));
       if (i < parts.length - 1) { const inp = h("input", { class: "trou", type: "text", autocomplete: "off", autocapitalize: "off", spellcheck: "false", "aria-label": `Mot manquant ${i + 1}`, oninput: onPret, style: { width: `${Math.max(5, Math.min(16, String(item.reponses[i][0]).length + 2))}ch` } }); inputs.push(inp); p.append(inp); }
@@ -388,8 +387,8 @@ function afficherFin(ctx) {
     quetes.length ? h("div", { class: "quetes-fin" }, quetes.map(q => h("span", { class: `puce ${q.progres >= q.objectif ? "encre" : ""}` }, q.progres >= q.objectif ? icone("valider") : null, `${q.libelle} · ${Math.min(q.progres, q.objectif)}/${q.objectif}`))) : null,
     h("div", { class: "rang centre", style: { marginTop: "1.2rem" } },
       type === "epreuve" ? h("a", { class: "btn", href: `#/chapitre/${ctx.chapitre.id}/epreuve` }, "Retour à l'épreuve")
-        : ctx.chapitre ? h("a", { class: "btn encre", href: `#/session/decouvrir/${ctx.chapitre.id}` }, icone("recommencer"), "Encore une séance")
-        : h("a", { class: "btn encre", href: `#/session/${type}${ctx.modules.length === 1 && type !== "defi" ? "/" + ctx.modules[0].id : ""}` }, icone("recommencer"), "Encore une séance"),
+        : ctx.chapitre ? encore(ctx.app, `#/session/decouvrir/${ctx.chapitre.id}`)
+        : encore(ctx.app, `#/session/${type}${ctx.modules.length === 1 && type !== "defi" ? "/" + ctx.modules[0].id : ""}`),
       ctx.chapitre ? h("a", { class: "btn", href: `#/chapitre/${ctx.chapitre.id}` }, "Retour au chapitre") : null,
       h("a", { class: "btn", href: "#/jardin" }, icone("jardin"), "Au jardin")),
     h("details", { class: "detail-questions" }, h("summary", {}, "Le détail des questions"),
@@ -405,8 +404,36 @@ function lire(texte, matiere) {
     if (!("speechSynthesis" in window)) return;
     speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(String(texte).replace(/\*\*|==|\*/g, "").replace(/___/g, " … "));
-    u.lang = matiere === "anglais" ? "en-GB" : matiere === "espagnol" ? "es-ES" : "fr-FR";
+    u.lang = matiere === "anglais" ? "en-GB" : MATIERES[matiere]?.langue || "fr-FR";
     u.rate = 0.95;
     speechSynthesis.speak(u);
   } catch {}
+}
+
+// « Encore une séance » mène souvent à l'adresse de la page en cours : un simple lien ne ferait rien.
+function encore(app, href) {
+  return h("a", { class: "btn encre", href, onclick: (ev) => { ev.preventDefault(); app.naviguer(href); } }, icone("recommencer"), "Encore une séance");
+}
+
+/** Séance sans question (tout est arrosé, ou plus rien de neuf) : on le dit et on propose la suite. */
+function seanceVide(type, modules, e) {
+  const items = modules.flatMap(m => m.chapitres.flatMap(c => c.items));
+  const maintenant = Date.now();
+  const prochaine = items.map(it => e.items[it.id]?.due).filter(d => Number.isFinite(d) && d > maintenant).sort((a, b) => a - b)[0];
+  const quand = !prochaine ? null : prochaine - maintenant < 3600000 ? "dans moins d'une heure"
+    : prochaine - maintenant < 86400000 && new Date(prochaine).getDate() === new Date().getDate() ? `vers ${new Date(prochaine).getHours()} h`
+    : new Date(prochaine).toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long" }).replace(/^/, "le ");
+  const arroser = type === "arroser";
+  const mini = lume({ humeur: "joie" }); mini.classList.add("lume");
+  return h("div", { class: "seance" }, h("div", { class: "feuillet fin-seance seance-vide" },
+    h("p", { class: "etiquette" }, TITRES[type] || "Séance"),
+    mini,
+    h("h2", {}, arroser ? "Tout est arrosé !" : "Rien de nouveau ici pour l'instant"),
+    h("p", { class: "muet" }, arroser
+      ? `Aucune graine n'a soif : ta mémoire a fait son travail. ${quand ? `Les prochaines révisions arriveront ${quand}.` : "Les prochaines révisions viendront au fil des jours."} Réviser trop tôt n'aide pas à retenir : c'est l'oubli léger qui rend le rappel efficace.`
+      : "Tu as déjà rencontré toutes les questions disponibles. Reviens plus tard pour les réviser, ou explore un autre chapitre."),
+    h("div", { class: "rang", style: { justifyContent: "center", marginTop: "1rem" } },
+      h("a", { class: "btn encre", href: "#/atlas" }, icone("graine"), "Découvrir un chapitre"),
+      h("a", { class: "btn", href: "#/session/defi" }, icone("eclair"), "Défi éclair"),
+      h("a", { class: "btn discret", href: "#/jardin" }, icone("jardin"), "Au jardin"))));
 }

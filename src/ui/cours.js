@@ -738,7 +738,7 @@ function texteBloc(b) {
 
 // ————————————————————————————— Lecture à voix haute —————————————————————————————
 
-const LANGUES = { anglais: "en-GB", espagnol: "es-ES" };
+const LANGUES = { anglais: "en-GB", espagnol: "es-ES", allemand: "de-DE", arabe: "ar", chinois: "zh-CN" };
 function matiereDe(chapitre) {
   return chapitre?.matiere || String(chapitre?.id || "").match(/^\d+e-(.+?)-\d{2}(?:-|$)/)?.[1] || "";
 }

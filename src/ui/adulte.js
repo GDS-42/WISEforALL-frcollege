@@ -4,6 +4,7 @@ import { chargerNiveau, MATIERES, SOCLE, NIVEAUX } from "../content.js";
 import { maitrise, couverture, nbDus, calibration, statsGlobales } from "../engine.js";
 import { paliersElo } from "../adapt.js";
 import { telecharger, boutonsExport } from "./sauvegarde.js";
+import { modulesVisibles } from "./jardin.js";
 
 const PALIERS = ["non évalué", "fragile", "en cours", "satisfaisant", "très bonne maîtrise"];
 
@@ -22,7 +23,7 @@ export async function ecranAdulte(main, params, app) {
     conteneur);
 
   async function rendre() {
-    const modules = await chargerNiveau(niveau);
+    const modules = modulesVisibles(await chargerNiveau(niveau), e);
     const tous = modules.flatMap(m => m.chapitres.flatMap(c => c.items));
     const s = statsGlobales(e, tous);
     const cal = calibration(e);
@@ -82,7 +83,7 @@ function stat(valeur, libelle, sous = "") { return h("div", { class: "stat" }, h
 
 
 async function csv(e) {
-  const modules = await chargerNiveau(e.profil.niveau);
+  const modules = modulesVisibles(await chargerNiveau(e.profil.niveau), e);
   const lignes = [["niveau", "matiere", "chapitre", "theme", "maitrise_pct", "explore_pct", "reponses", "reussites", "a_revoir"]];
   for (const m of modules) for (const c of m.chapitres) {
     const n = c.items.reduce((a, it) => a + (e.items[it.id]?.n || 0), 0), ok = c.items.reduce((a, it) => a + (e.items[it.id]?.ok || 0), 0);

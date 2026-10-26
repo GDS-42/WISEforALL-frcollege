@@ -3,6 +3,7 @@ import { h, toast, poser, remplacer } from "./dom.js";
 import { icone } from "./icones.js";
 import { listerProfils, creerProfil, supprimerProfil } from "../store.js";
 import { NIVEAUX } from "../content.js";
+import { CHOIX_LV2 } from "./reglages.js";
 import { lume } from "./illustrations.js";
 import { zoneImport, boutonsExport } from "./sauvegarde.js";
 
@@ -61,7 +62,7 @@ function formulaire(livre, app, lumeSvg) {
   const prenom = h("input", { type: "text", id: "prenom", placeholder: "Ton prénom ou un surnom", maxlength: 24, autocomplete: "given-name", required: true });
   let niveau = "6e";
   const boutons = NIVEAUX.map(n => h("button", { type: "button", "aria-pressed": n === niveau ? "true" : "false", onclick: (ev) => { niveau = n; boutons.forEach(b => b.setAttribute("aria-pressed", b === ev.currentTarget ? "true" : "false")); } }, n));
-  const lv2 = h("select", { id: "lv2" }, h("option", { value: "espagnol" }, "Espagnol"), h("option", { value: "aucune" }, "Autre langue / pas encore"));
+  const lv2 = h("select", { id: "lv2" }, ...CHOIX_LV2.map(([v, l]) => h("option", { value: v }, l)));
   poser(livre, h("form", { class: "formulaire", onsubmit: (ev) => {
     ev.preventDefault();
     const nom = prenom.value.trim();

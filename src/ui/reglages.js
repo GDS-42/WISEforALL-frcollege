@@ -31,8 +31,8 @@ export async function ecranReglages(main, params, app) {
       bascule("son", "Sons", "Carillons discrets pour les réponses et la fin de séance."),
       h("div", { class: "toggle" }, h("div", {}, h("div", {}, "Classe"), h("div", { class: "desc" }, "Change le niveau de référence (le jardin affiché). Tes progrès sont conservés.")),
         h("div", { class: "segments" }, NIVEAUX.map(n => h("button", { "aria-pressed": e.profil.niveau === n ? "true" : "false", onclick: () => { app.store.maj(x => { x.profil.niveau = n; }); majProfil(e); app.rendre(); } }, n)))),
-      h("div", { class: "toggle" }, h("div", {}, h("div", {}, "Deuxième langue")),
-        h("div", { class: "segments" }, [["espagnol", "Espagnol"], ["aucune", "Aucune"]].map(([v, l]) => h("button", { "aria-pressed": (e.profil.lv2 || "espagnol") === v ? "true" : "false", onclick: () => { app.store.maj(x => { x.profil.lv2 = v; }); majProfil(e); app.rendre(); } }, l))))),
+      h("div", { class: "toggle" }, h("div", {}, h("div", {}, "Deuxième langue"), h("div", { class: "desc" }, "Une seule langue apparaît dans ton jardin ; tes progrès dans les autres sont conservés si tu changes.")),
+        h("div", { class: "segments" }, CHOIX_LV2.map(([v, l]) => h("button", { "aria-pressed": (e.profil.lv2 || "espagnol") === v ? "true" : "false", onclick: () => { app.store.maj(x => { x.profil.lv2 = v; }); majProfil(e); app.rendre(); } }, l))))),
     carteDonnees(app),
     h("div", { class: "feuillet" },
       h("h3", {}, "À propos"),
@@ -71,6 +71,9 @@ function carteDonnees(app) {
       h("a", { class: "btn discret", href: "#/adulte" }, "Espace adulte"),
       h("button", { class: "btn discret", onclick: () => app.deconnecter() }, "Changer de profil")));
 }
+
+/** Deuxièmes langues proposées (une seule suivie par profil). */
+export const CHOIX_LV2 = [["espagnol", "Espagnol"], ["allemand", "Allemand"], ["arabe", "Arabe"], ["chinois", "Chinois"], ["aucune", "Aucune / pas encore"]];
 
 function majProfil(e) {
   try {

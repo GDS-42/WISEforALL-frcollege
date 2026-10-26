@@ -148,3 +148,24 @@ test("réponses symboliques", () => {
   assert.ok(texteCorrespond("=", ["="]).ok);
   assert.ok(!texteCorrespond("+", ["−"]).ok);
 });
+
+test("LV2 : allemand, arabe, chinois", () => {
+  const ok = (s, a, matiere, strict = false) => texteCorrespond(s, a, { item: { matiere }, strict }).ok;
+  // Allemand : umlauts et ß équivalents, même en strict ; le genre compte en strict.
+  assert.ok(ok("schoene Gruesse", ["schöne Grüße"], "allemand"));
+  assert.ok(ok("Strasse", ["Straße"], "allemand", true));
+  assert.ok(ok("der hund", ["der Hund"], "allemand", true));
+  assert.ok(!ok("die Hund", ["der Hund"], "allemand", true));
+  // Arabe : sans harakat, alif hamza unifié, ة/ه ; la réponse en écriture arabe n'est pas effacée.
+  assert.ok(ok("مدرسة", ["مَدْرَسَةٌ"], "arabe"));
+  assert.ok(ok("كتاب", ["كِتابٌ"], "arabe", true));
+  assert.ok(ok("احمد", ["أحمد"], "arabe"));
+  assert.ok(ok("salam", ["salām", "سلام"], "arabe"));
+  assert.ok(!ok("بيت", ["مدرسة"], "arabe"));
+  assert.equal(normaliser("مَدْرَسَةٌ", { langue: "ar" }), "مدرسه");
+  // Chinois : caractères ou pinyin, tons en accents, en chiffres ou absents, espaces et ponctuation ignorés.
+  for (const s of ["你好", "你好！", "nǐ hǎo", "ni3 hao3", "ni hao", "nihao", "Ni Hao"]) assert.ok(ok(s, ["你好", "nǐ hǎo"], "chinois", true), s);
+  assert.ok(ok("lvse", ["lǜsè"], "chinois"));
+  assert.ok(!ok("ni hao ma", ["你好", "nǐ hǎo"], "chinois"));
+  assert.ok(!ok("再见", ["你好", "nǐ hǎo"], "chinois"));
+});

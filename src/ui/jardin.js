@@ -17,7 +17,8 @@ export function momentDuJour(d = new Date()) {
   return hh >= 5 && hh < 8 ? "aube" : hh < 18 && hh >= 8 ? "jour" : hh >= 18 && hh < 21 ? "crepuscule" : "nuit";
 }
 
-export function modulesVisibles(modules, e) { return modules.filter(m => m.matiere !== "espagnol" || e.profil.lv2 !== "aucune"); }
+/** Une seule deuxième langue par profil (profil.lv2) ; « aucune » les masque toutes. */
+export function modulesVisibles(modules, e) { const lv2 = e.profil.lv2 || "espagnol"; return modules.filter(m => !MATIERES[m.matiere]?.lv2 || m.matiere === lv2); }
 
 /** Scène du jardin : paysage peint, une plante par matière (deux rangs), décorations placées. */
 export function sceneJardin(modules, e, { animer = true } = {}) {

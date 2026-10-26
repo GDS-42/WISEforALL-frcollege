@@ -12,7 +12,7 @@ export async function ecranAtlas(main, [niveauParam], app) {
   const e = app.etat;
   const niveau = NIVEAUX.includes(niveauParam) ? niveauParam : e.profil.niveau;
   let modules = await chargerNiveau(niveau);
-  if (niveau === e.profil.niveau) modules = modulesVisibles(modules, e);
+  modules = modulesVisibles(modules, e);
   poser(main, 
     h("div", { class: "entete-page" },
       h("div", { style: { flex: 1, minWidth: "240px" } }, h("span", { class: "etiquette" }, `Programme de ${niveau}`), h("h1", { style: { margin: ".1rem 0 0" } }, "L'Atlas"), h("p", { class: "intro" }, "Chaque matière est une parcelle du jardin. Choisis où planter.")),

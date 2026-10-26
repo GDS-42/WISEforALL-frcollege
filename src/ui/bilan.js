@@ -1,4 +1,5 @@
 // ÉCLORE — Le bilan de l'élève : progression visible, calendrier, calibration, succès. Jamais une note : une carte.
+import { modulesVisibles } from "./jardin.js";
 import { h, pluriel, duree, poser, remplacer } from "./dom.js";
 import { chargerNiveau, MATIERES } from "../content.js";
 import { statsGlobales, calibration, maitrise, couverture } from "../engine.js";
@@ -8,7 +9,7 @@ import { cleJour } from "../store.js";
 
 export async function ecranBilan(main, params, app) {
   const e = app.etat;
-  const modules = (await chargerNiveau(e.profil.niveau)).filter(m => m.matiere !== "espagnol" || e.profil.lv2 !== "aucune");
+  const modules = modulesVisibles(await chargerNiveau(e.profil.niveau), e);
   const tous = modules.flatMap(m => m.chapitres.flatMap(c => c.items));
   const s = statsGlobales(e, tous);
   const cal = calibration(e);

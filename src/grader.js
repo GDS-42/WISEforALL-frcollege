@@ -228,23 +228,47 @@ const ARTICLES = {
   fr: /^(le|la|les|l|un|une|des|du|de la|de l|de|d|au|aux)\s+/,
   en: /^(the|a|an|to)\s+/,
   es: /^(el|la|los|las|un|una|unos|unas|lo|al|del)\s+/,
+  de: /^(der|die|das|den|dem|des|ein|eine|einen|einem|einer|eines)\s+/,
+  ar: /(?!)/, // l'article ال est soudé au nom
+  zh: /(?!)/,
 };
 const INTROS = /^(c est|ce sont|ce serait|c etait|il s agit (d|de|du|des)|on (l )?appelle|on dit|on parle (de|d)|la reponse est|reponse|je pense que|je crois que|peut etre|surement|it is|this is|that is|es|son|se llama)\s+/;
 const NEGATIONS = /\b(pas|non|ne|n|jamais|aucun|aucune|not|no|never|nunca|ni)\b/;
 
-function langueDe(item) { return item?.matiere === "anglais" ? "en" : item?.matiere === "espagnol" ? "es" : "fr"; }
+const LANGUE_MATIERE = { anglais: "en", espagnol: "es", allemand: "de", arabe: "ar", chinois: "zh" };
+function langueDe(item) { return LANGUE_MATIERE[item?.matiere] || "fr"; }
+
+const ARABE = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/;
+const SINO = /[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]/;
+/** Arabe : sans harakat ni tatwil ; أ إ آ ٱ → ا ; ة → ه ; ى → ي ; chiffres arabes-indiens → 0-9. */
+function normaliserArabe(t) {
+  return t.replace(/[\u064B-\u065F\u0670\u06D6-\u06ED\u0640]/g, "").replace(/[أإآٱ]/g, "ا").replace(/ة/g, "ه").replace(/ى/g, "ي")
+    .replace(/[٠-٩]/g, d => String(d.charCodeAt(0) - 0x660)).replace(/[۰-۹]/g, d => String(d.charCodeAt(0) - 0x6F0)).replace(/[،؛؟]/g, " ");
+}
+/** Chinois : pleine chasse → demi-chasse, ponctuation chinoise ignorée, pinyin sans ton (accents ou chiffres), sans espaces. */
+function normaliserChinois(t) {
+  t = t.normalize("NFKC").replace(/[\u3000-\u303F\uFF00-\uFF0F\uFF1A-\uFF20·•]/g, " ");
+  t = SANS_ACCENT(t).replace(/u:/g, "u").replace(/v/g, "u").replace(/([a-z])[1-5]\b/g, "$1").replace(/([a-z])[1-5](?=[a-z])/g, "$1");
+  return t.replace(/['’\s.,;:!?-]+/g, "");
+}
 
 /** Normalisation de base (strict : garde les accents et les tirets ; sinon les retire). */
 export function normaliser(s, { strict = false, langue = "fr" } = {}) {
   let t = String(s ?? "").normalize("NFC").toLowerCase();
   t = t.replace(/[   ]/g, " ").replace(/[’‘`´ʼ]/g, "'").replace(/[«»"“”„]/g, " ").replace(/[‐‑–—−]/g, "-");
   t = t.replace(/œ/g, "oe").replace(/æ/g, "ae");
+  // Allemand : ä = ae, ö = oe, ü = ue, ß = ss (claviers sans umlaut), même en mode strict.
+  if (langue === "de") t = t.replace(/ß/g, "ss").replace(/ä/g, "ae").replace(/ö/g, "oe").replace(/ü/g, "ue");
+  if (langue === "ar" || ARABE.test(t)) t = normaliserArabe(t);
+  if (langue === "zh") return normaliserChinois(t);
+  if (SINO.test(t)) t = t.normalize("NFKC").replace(/[\u3000-\u303F\uFF00-\uFF0F\uFF1A-\uFF20]/g, " ");
   if (langue === "en" || /[a-z]'[a-z]/.test(t)) for (const [re, r] of CONTRACTIONS) t = t.replace(re, r);
   if (strict) {
     t = t.replace(/^[\s.,;:!?¡¿()[\]'-]+|[\s.,;:!?¡¿()[\]'-]+$/g, "").replace(/\s+/g, " ").trim();
     return t;
   }
-  t = SANS_ACCENT(t).replace(/[^a-z0-9ñ\s]/g, " ").replace(/\s+/g, " ").trim();
+  // On garde les lettres arabes et les caractères chinois (sinon une réponse en écriture arabe serait effacée).
+  t = SANS_ACCENT(t).replace(/[^a-z0-9ñ\s\u0621-\u064A\u0671-\u06D3\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]/g, " ").replace(/\s+/g, " ").trim();
   return t;
 }
 
